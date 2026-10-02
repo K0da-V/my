@@ -1,0 +1,10 @@
+{
+  "name": "Aura Privé",
+  "description": "App de conexões reais e interesses em comum com geolocalização, momentos liberais criptografados ponta a ponta, modo às cegas e filtros avançados de consentimento.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

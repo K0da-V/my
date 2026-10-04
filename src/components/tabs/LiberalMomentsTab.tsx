@@ -6,42 +6,80 @@ import {
   EyeOff,
   Heart,
   MessageCircle,
-  Share2,
   ShieldCheck,
   Plus,
   Clock,
-  Crown,
-  AlertCircle,
+  BadgeDollarSign,
   X,
-  Camera,
-  Image as ImageIcon
+  Flag,
+  Send,
+  Flame
 } from 'lucide-react';
-import { LiberalMoment, User, VipTier } from '../../types';
+import { LiberalMoment, User } from '../../types';
+import { MediaUploadPicker, EditedMediaResult } from '../MediaUploadPicker';
+
+export const MOMENT_DESTRUCT_OPTIONS = [
+  { hours: 0, label: 'Permanente' },
+  { hours: 1, label: '1 Hora' },
+  { hours: 24, label: '24 Horas' },
+  { hours: 168, label: '7 Dias' }
+];
 
 interface LiberalMomentsTabProps {
   currentUser: User;
   moments: LiberalMoment[];
   onAddMoment: (moment: LiberalMoment) => void;
+  onUnlockMomentSale?: (momentId: string, price: number) => void;
   onOpenVip: () => void;
-  onOpenReport: (author: any) => void;
+  onOpenSellerHub?: () => void;
+  onOpenReport: (author: User) => void;
 }
 
 export function LiberalMomentsTab({
   currentUser,
   moments,
   onAddMoment,
-  onOpenVip,
-  onOpenReport,
+  onUnlockMomentSale,
+  onOpenReport
 }: LiberalMomentsTabProps) {
   const [revealedMomentIds, setRevealedMomentIds] = useState<string[]>([]);
+  const [unlockedSaleIds, setUnlockedSaleIds] = useState<string[]>([]);
   const [likedMomentIds, setLikedMomentIds] = useState<string[]>(
     moments.filter((m) => m.isLiked).map((m) => m.id)
   );
+  const [activeFilterTag, setActiveFilterTag] = useState<string>('Todos');
+
+  // Comments Drawer State per moment
+  const [openCommentsMomentId, setOpenCommentsMomentId] = useState<string | null>(null);
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [localComments, setLocalComments] = useState<
+    Record<string, { id: string; author: string; text: string; time: string }[]>
+  >({});
+
+  // Publish Modal State (Strictly Free +18 Community Moments — NO Monetization Checkbox here!)
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [pickedMedia, setPickedMedia] = useState<EditedMediaResult>({
+    url: '/src/assets/images/liberal_moment_art_1790885781551.jpg',
+    mediaType: 'image',
+    filterCss: 'none',
+    overlayText: ''
+  });
   const [captionInput, setCaptionInput] = useState('');
-  const [selectedTag, setSelectedTag] = useState('CorpoLivre');
+  const [selectedTags, setSelectedTags] = useState<string[]>(['CorpoLivre', 'ArteSensual']);
   const [destructOption, setDestructOption] = useState<number>(24);
-  const [isVipOnlyPost, setIsVipOnlyPost] = useState(false);
+
+  const blockSales = Boolean(currentUser.privacySettings.blockAdultSalesTabs);
+
+  const visibleMoments = moments.filter((m) => {
+    if (blockSales && m.isMonetizedSale) return false;
+    if (
+      activeFilterTag !== 'Todos' &&
+      !m.tags.some((t) => t.toLowerCase().includes(activeFilterTag.toLowerCase()))
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   const toggleReveal = (id: string) => {
     setRevealedMomentIds((prev) =>
@@ -55,8 +93,33 @@ export function LiberalMomentsTab({
     );
   };
 
-  const handlePublish = () => {
-    if (!captionInput.trim()) return;
+  const toggleTagSelection = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const handleUnlockPaidMoment = (moment: LiberalMoment) => {
+    setUnlockedSaleIds((prev) => [...prev, moment.id]);
+    setRevealedMomentIds((prev) => [...prev, moment.id]);
+    if (onUnlockMomentSale && moment.salePrice) {
+      onUnlockMomentSale(moment.id, moment.salePrice);
+    }
+  };
+
+  const formatDestructLabel = (mins?: number) => {
+    if (!mins || mins <= 0) return 'Permanente';
+    if (mins < 60) return `${mins} min`;
+    const hrs = Math.round(mins / 60);
+    if (hrs === 1) return '1 Hora';
+    if (hrs === 24) return '24 Horas';
+    if (hrs === 168) return '7 Dias';
+    return `${hrs}h`;
+  };
+
+  const handlePublish = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!captionInput.trim() && !pickedMedia.url) return;
 
     const newMoment: LiberalMoment = {
       id: `moment_${Date.now()}`,
@@ -64,326 +127,476 @@ export function LiberalMomentsTab({
       authorName: currentUser.name,
       authorAvatar: currentUser.avatarUrl,
       isAuthorVerified: currentUser.isVerified,
-      mediaUrl: '/src/assets/images/liberal_moment_art_1790885781551.jpg',
-      mediaType: 'image',
-      caption: captionInput,
-      timestamp: 'Agora',
+      isAuthorSeller: Boolean(
+        currentUser.isSellerVerified || currentUser.sellerProfile?.isSellerVerified
+      ),
+      mediaUrl: pickedMedia.url,
+      mediaType: pickedMedia.mediaType,
+      caption: captionInput.trim() || 'Momento compartilhado no Aura Privé ✨',
+      timestamp: 'Agora mesmo',
       likes: 1,
       isLiked: true,
-      e2eeSignature: `AES-GCM-256::e2e_sig_${Math.random().toString(36).substring(2, 7)}`,
+      e2eeSignature: `AES-256-GCM`,
       isSensitiveNsfw: true,
-      selfDestructMins: destructOption * 60,
-      tags: [selectedTag, 'ExpressãoLivre', 'E2EE'],
-      isLockedVip: isVipOnlyPost,
+      selfDestructMins: destructOption > 0 ? destructOption * 60 : undefined,
+      tags: selectedTags.length > 0 ? selectedTags : ['CorpoLivre', '+18'],
+      isLockedVip: false,
+      isMonetizedSale: false,
+      isUnlockedByMe: true
     };
 
     onAddMoment(newMoment);
     setLikedMomentIds((prev) => [...prev, newMoment.id]);
+    setRevealedMomentIds((prev) => [...prev, newMoment.id]);
     setCaptionInput('');
     setShowCreateModal(false);
   };
 
+  const handleAddComment = (momentId: string) => {
+    const text = (commentInputs[momentId] || '').trim();
+    if (!text) return;
+    setLocalComments((prev) => ({
+      ...prev,
+      [momentId]: [
+        ...(prev[momentId] || []),
+        {
+          id: `c_${Date.now()}`,
+          author: currentUser.name,
+          text,
+          time: 'Agora'
+        }
+      ]
+    }));
+    setCommentInputs((prev) => ({ ...prev, [momentId]: '' }));
+  };
+
   return (
-    <div className="max-w-xl mx-auto px-4 py-4 pb-24 md:pb-8">
-      {/* Header Info & Privacy Charter */}
-      <div className="bg-[#10131d] border border-slate-800 rounded-2xl p-4 mb-4 shadow-xl">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
-              <Sparkles className="w-5 h-5" />
+    <div className="max-w-2xl mx-auto space-y-6 pb-16">
+      {/* Top Editorial Banner */}
+      <div className="velvet-card rounded-3xl p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#E11D48]/25 to-[#881337]/30 border border-[#E11D48]/40 flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5 text-[#FB7185]" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white font-display">Momentos Liberais Privé</h2>
-              <p className="text-[11px] text-slate-400">
-                Expressão corporal sem censura · Criptografia ponta a ponta
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-bold text-white font-display">
+                  Momentos Liberais
+                </h1>
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 font-semibold">
+                  Comunidade Livre +18
+                </span>
+              </div>
+              <p className="text-xs text-[#FAF5F6]/65 mt-1 leading-relaxed">
+                Espaço aberto onde qualquer membro pode publicar e apreciar fotos e vídeos sensuais com proteção anti-print e autodestruição programada.
               </p>
             </div>
           </div>
 
-          {/* New Post Button */}
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition-all shadow-md shadow-rose-600/25 flex items-center gap-1.5"
+            className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#E11D48] to-[#BE123C] hover:brightness-110 text-white font-bold text-xs shadow-lg shadow-[#E11D48]/30 flex items-center justify-center gap-2 shrink-0 transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>Publicar</span>
+            <span>Publicar Momento</span>
           </button>
         </div>
 
-        {/* E2EE Protection Badge & Disclaimer */}
-        <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-          <div className="flex items-center gap-1.5 text-emerald-400">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Mídias cifradas localmente (AES-256)</span>
-          </div>
-          <span className="text-[10px] text-slate-500">Toque na mídia para revelar</span>
+        {/* Category Filter Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pt-4 mt-4 border-t border-white/[0.07] no-scrollbar">
+          {[
+            'Todos',
+            'CorpoLivre',
+            'ArteSensual',
+            'Casal',
+            'Shibari',
+            'NoitePrivé',
+            'SemFiltro'
+          ].map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => setActiveFilterTag(tag)}
+              className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                activeFilterTag === tag
+                  ? 'bg-[#E11D48] text-white border-[#E11D48] shadow-sm'
+                  : 'bg-white/[0.03] text-[#FAF5F6]/70 border-white/[0.08] hover:text-white'
+              }`}
+            >
+              {tag === 'Todos' ? 'Todos os Momentos' : `#${tag}`}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Feed List */}
+      {/* Moments Feed */}
       <div className="space-y-6">
-        {moments.map((moment) => {
+        {visibleMoments.map((moment) => {
           const isRevealed = revealedMomentIds.includes(moment.id);
           const isLiked = likedMomentIds.includes(moment.id);
-          const isLockedForMe = moment.isLockedVip && currentUser.vipTier === 'free';
+          const isPaidSale = Boolean(moment.isMonetizedSale && moment.salePrice);
+          const isSaleUnlocked =
+            !isPaidSale ||
+            Boolean(moment.isUnlockedByMe) ||
+            unlockedSaleIds.includes(moment.id) ||
+            moment.authorId === currentUser.id;
+          const extraComments = localComments[moment.id] || [];
 
           return (
-            <div
+            <article
               key={moment.id}
-              className="bg-[#111420] border border-slate-800 rounded-3xl overflow-hidden shadow-xl"
+              className="velvet-card rounded-[28px] overflow-hidden border border-white/10 transition-all"
             >
-              {/* Post Author Header */}
-              <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-700 bg-slate-800">
-                    <img
-                      src={moment.authorAvatar}
-                      alt={moment.authorName}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
+              {/* Author Header (Optimized for Mobile, Tablet & Desktop) */}
+              <div className="p-3.5 sm:p-5 flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={moment.authorAvatar}
+                    alt={moment.authorName}
+                    referrerPolicy="no-referrer"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border border-white/15 shrink-0"
+                  />
+                  <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-white font-display">
+                      <span className="text-sm font-bold text-white truncate">
                         {moment.authorName}
                       </span>
                       {moment.isAuthorVerified && (
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      )}
+                      {moment.isAuthorSeller && (
+                        <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-200 text-[10px] font-semibold whitespace-nowrap">
+                          Criador(a)
+                        </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                    <div className="flex items-center gap-1.5 text-[11px] text-[#FAF5F6]/60 mt-0.5 whitespace-nowrap">
                       <span>{moment.timestamp}</span>
-                      <span aria-hidden="true">·</span>
-                      <span className="text-emerald-400/80 font-mono">E2EE Verificado</span>
+                      <span>•</span>
+                      <span className="inline-flex items-center gap-1 text-amber-300/90">
+                        <Clock className="w-3 h-3 shrink-0" />
+                        <span>{formatDestructLabel(moment.selfDestructMins)}</span>
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {moment.isLockedVip && (
-                  <span className="px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold flex items-center gap-1">
-                    <Crown className="w-3 h-3" />
-                    <span>Exclusivo VIP</span>
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {isPaidSale ? (
+                    <span className="px-2.5 py-1 rounded-full bg-[#E11D48]/20 border border-[#E11D48]/50 text-[#FB7185] text-[11px] font-bold flex items-center gap-1 whitespace-nowrap">
+                      <BadgeDollarSign className="w-3.5 h-3.5 shrink-0" />
+                      {isSaleUnlocked
+                        ? 'Liberado'
+                        : `R$ ${moment.salePrice?.toFixed(2).replace('.', ',')}`}
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-[#FAF5F6]/75 text-[11px] font-medium whitespace-nowrap">
+                      Acesso Livre
+                    </span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenReport({
+                        ...currentUser,
+                        id: moment.authorId,
+                        name: moment.authorName,
+                        avatarUrl: moment.authorAvatar
+                      })
+                    }
+                    className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] text-[#FAF5F6]/45 hover:text-rose-400 transition-colors"
+                    title="Denunciar publicação"
+                  >
+                    <Flag className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
-              {/* Media Container with Privacy Shield / Tap to Reveal */}
-              <div
-                className="relative h-80 sm:h-96 w-full bg-[#141824] cursor-pointer overflow-hidden select-none"
-                onClick={() => {
-                  if (isLockedForMe) {
-                    onOpenVip();
-                  } else {
-                    toggleReveal(moment.id);
-                  }
-                }}
-              >
-                <img
-                  src={moment.mediaUrl}
-                  alt={moment.caption}
-                  referrerPolicy="no-referrer"
-                  className={`w-full h-full object-cover transition-all duration-300 ${
-                    !isRevealed || isLockedForMe ? 'blur-3xl scale-110 brightness-50' : 'brightness-95'
-                  }`}
-                />
-
-                {/* Simulated Anti-Screenshot Watermark */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-15">
-                  <span className="font-mono text-xs text-white uppercase tracking-widest rotate-[-25deg]">
-                    AURA PRIVÉ · DRM PROTECTED · {currentUser.name}
-                  </span>
-                </div>
-
-                {/* Privacy Blur Overlay Prompt */}
-                {!isRevealed && !isLockedForMe && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-black/40">
-                    <div className="w-14 h-14 rounded-2xl bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center mb-2 text-white shadow-xl">
-                      <Eye className="w-6 h-6" />
-                    </div>
-                    <span className="text-xs font-bold text-white">Conteúdo Liberal / Sensível</span>
-                    <span className="text-[11px] text-slate-300 mt-1 max-w-xs">
-                      Toque para revelar com segurança visual. Imagem autodestrutiva protegida.
-                    </span>
-                  </div>
+              {/* Media Container */}
+              <div className="relative aspect-[4/5] w-full bg-[#090608] overflow-hidden">
+                {moment.mediaType === 'video' ? (
+                  <video
+                    src={moment.mediaUrl}
+                    controls={isRevealed && isSaleUnlocked}
+                    playsInline
+                    className={`w-full h-full object-cover transition-all duration-500 ${
+                      !isSaleUnlocked || !isRevealed
+                        ? 'blur-2xl scale-110 brightness-50'
+                        : 'blur-0 scale-100'
+                    }`}
+                  />
+                ) : (
+                  <img
+                    src={moment.mediaUrl}
+                    alt={moment.caption}
+                    referrerPolicy="no-referrer"
+                    className={`w-full h-full object-cover transition-all duration-500 ${
+                      !isSaleUnlocked || !isRevealed
+                        ? 'blur-2xl scale-110 brightness-50'
+                        : 'blur-0 scale-100'
+                    }`}
+                  />
                 )}
 
-                {/* Locked VIP Overlay */}
-                {isLockedForMe && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-black/60 backdrop-blur-md">
-                    <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mb-2 text-amber-300 shadow-xl">
-                      <Lock className="w-6 h-6" />
+                {/* Overlay 1: If it came from Creator Studio as a Paid Preview */}
+                {isPaidSale && !isSaleUnlocked && (
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-black/55 backdrop-blur-md">
+                    <div className="w-14 h-14 rounded-2xl bg-[#E11D48]/20 border border-[#E11D48] flex items-center justify-center text-[#FB7185] mb-3 shadow-lg">
+                      <BadgeDollarSign className="w-7 h-7" />
                     </div>
-                    <span className="text-xs font-bold text-white">Momento Exclusivo para Membros VIP</span>
-                    <span className="text-[11px] text-slate-300 mt-1 max-w-xs mb-3">
-                      Assine o plano Black VIP ou Diamond Club para liberar mídias liberais restritas.
-                    </span>
+                    <h4 className="text-base font-bold text-white font-display">
+                      Prévia Exclusiva de Criador (+18)
+                    </h4>
+                    <p className="text-xs text-[#FAF5F6]/70 max-w-xs mt-1 mb-4">
+                      Desbloqueie esta mídia completa publicada por {moment.authorName}.
+                    </p>
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenVip();
-                      }}
-                      className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md"
+                      onClick={() => handleUnlockPaidMoment(moment)}
+                      className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#E11D48] to-[#BE123C] text-white font-bold text-xs shadow-lg"
                     >
-                      Desbloquear com VIP
+                      Desbloquear por R$ {moment.salePrice?.toFixed(2).replace('.', ',')}
                     </button>
                   </div>
                 )}
 
-                {/* Hide button if revealed */}
-                {isRevealed && !isLockedForMe && (
+                {/* Overlay 2: Free +18 Consent Blur Shield */}
+                {isSaleUnlocked && !isRevealed && (
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-black/40 backdrop-blur-sm">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white mb-3">
+                      <EyeOff className="w-5 h-5 text-[#FB7185]" />
+                    </div>
+                    <h4 className="text-sm font-bold text-white">
+                      Mídia Sensível (+18) · Proteção de Tela Ativa
+                    </h4>
+                    <p className="text-xs text-[#FAF5F6]/70 max-w-xs mt-1 mb-4">
+                      Toque abaixo para revelar a foto ou vídeo com segurança.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => toggleReveal(moment.id)}
+                      className="px-5 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white font-semibold text-xs flex items-center gap-2 backdrop-blur-md transition-all"
+                    >
+                      <Eye className="w-4 h-4 text-[#FB7185]" />
+                      <span>Revelar Mídia +18</span>
+                    </button>
+                  </div>
+                )}
+
+                {isSaleUnlocked && isRevealed && (
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleReveal(moment.id);
-                    }}
-                    className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white text-[10px] font-medium border border-white/20 flex items-center gap-1"
+                    onClick={() => toggleReveal(moment.id)}
+                    className="absolute top-3 right-3 z-20 px-3 py-1.5 rounded-xl bg-black/65 hover:bg-black/85 text-white text-xs flex items-center gap-1.5 border border-white/15"
                   >
-                    <EyeOff className="w-3 h-3" />
+                    <EyeOff className="w-3.5 h-3.5" />
                     <span>Ocultar</span>
                   </button>
                 )}
               </div>
 
-              {/* Caption & Metadata */}
-              <div className="p-4 space-y-3">
-                <p className="text-xs text-slate-200 leading-relaxed">
+              {/* Caption, Tags & Interaction Bar */}
+              <div className="p-4 sm:p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleLike(moment.id)}
+                      className={`px-3.5 py-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all border ${
+                        isLiked
+                          ? 'bg-[#E11D48]/20 border-[#E11D48] text-[#FB7185]'
+                          : 'bg-white/[0.04] border-white/10 text-[#FAF5F6]/75 hover:text-white'
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${isLiked ? 'fill-[#FB7185]' : ''}`} />
+                      <span>{moment.likes + (isLiked && !moment.isLiked ? 1 : 0)}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenCommentsMomentId(
+                          openCommentsMomentId === moment.id ? null : moment.id
+                        )
+                      }
+                      className="px-3.5 py-2 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-[#FAF5F6]/80 flex items-center gap-1.5"
+                    >
+                      <MessageCircle className="w-4 h-4 text-amber-300" />
+                      <span>Comentar ({extraComments.length})</span>
+                    </button>
+                  </div>
+
+                  <span className="text-[11px] text-[#FAF5F6]/45 flex items-center gap-1">
+                    <Lock className="w-3 h-3 text-emerald-400" />
+                    Sem dados EXIF
+                  </span>
+                </div>
+
+                <p className="text-xs sm:text-sm text-[#FAF5F6]/90 leading-relaxed">
+                  <strong className="text-white mr-1.5">{moment.authorName}:</strong>
                   {moment.caption}
                 </p>
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5">
-                  {moment.tags.map((t) => (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {moment.tags.map((tag) => (
                     <span
-                      key={t}
-                      className="text-[10px] px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-rose-300 font-medium"
+                      key={tag}
+                      className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.07] text-[#FB7185]"
                     >
-                      #{t}
+                      #{tag}
                     </span>
                   ))}
                 </div>
 
-                {/* Interactions Bar */}
-                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => toggleLike(moment.id)}
-                      className={`flex items-center gap-1.5 transition-colors ${
-                        isLiked ? 'text-rose-500 font-bold' : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <Heart className={`w-4 h-4 ${isLiked ? 'fill-rose-500' : ''}`} />
-                      <span>{moment.likes + (isLiked ? 1 : 0)}</span>
-                    </button>
+                {/* Expandable Comments Section */}
+                {openCommentsMomentId === moment.id && (
+                  <div className="pt-3 mt-2 border-t border-white/[0.07] space-y-2.5">
+                    {extraComments.map((c) => (
+                      <div
+                        key={c.id}
+                        className="p-2.5 rounded-xl bg-black/35 border border-white/[0.06] text-xs flex items-center justify-between"
+                      >
+                        <div>
+                          <strong className="text-[#FB7185] mr-1.5">{c.author}:</strong>
+                          <span className="text-[#FAF5F6]/90">{c.text}</span>
+                        </div>
+                        <span className="text-[10px] text-[#FAF5F6]/40">{c.time}</span>
+                      </div>
+                    ))}
 
-                    <button
-                      type="button"
-                      className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      <span>Comentários Privados</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={commentInputs[moment.id] || ''}
+                        onChange={(e) =>
+                          setCommentInputs((prev) => ({
+                            ...prev,
+                            [moment.id]: e.target.value
+                          }))
+                        }
+                        placeholder="Escreva um elogio ou comentário respeitoso..."
+                        className="flex-1 px-3.5 py-2 rounded-xl bg-[#0D090B] border border-white/10 text-xs text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddComment(moment.id)}
+                        className="p-2 rounded-xl bg-[#E11D48] text-white"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Cryptographic signature code */}
-                  <div className="text-[10px] font-mono text-slate-500 truncate max-w-[140px]" title={moment.e2eeSignature}>
-                    {moment.e2eeSignature}
-                  </div>
-                </div>
+                )}
               </div>
-            </div>
+            </article>
           );
         })}
       </div>
 
-      {/* Create New Moment Modal */}
+      {/* Create Moment Modal (Reformed with PC Folder / Mobile Gallery Picker + Built-in Editor, and WITHOUT the Monetize Checkbox!) */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#10131c] border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white font-display">Publicar Momento Liberal</h3>
+          <div className="w-full max-w-lg rounded-3xl velvet-card border border-white/15 p-5 sm:p-6 max-h-[92vh] overflow-y-auto space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#E11D48]/20 border border-[#E11D48]/40 flex items-center justify-center text-[#FB7185]">
+                  <Flame className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white font-display">
+                    Publicar Momento Liberal
+                  </h3>
+                  <p className="text-[11px] text-[#FAF5F6]/60">
+                    Escolha uma foto ou vídeo das pastas do computador ou galeria do celular/tablet
+                  </p>
+                </div>
+              </div>
               <button
+                type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="p-1.5 rounded-xl bg-white/[0.06] text-[#FAF5F6]/70 hover:text-white"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs text-slate-300">
-              {/* Media Preview Box */}
-              <div className="relative h-44 rounded-2xl bg-slate-900 border border-dashed border-slate-700 overflow-hidden flex flex-col items-center justify-center text-center p-4">
-                <img
-                  src="/src/assets/images/liberal_moment_art_1790885781551.jpg"
-                  alt="Upload preview"
-                  className="absolute inset-0 w-full h-full object-cover opacity-60"
-                />
-                <div className="relative z-10 bg-black/70 backdrop-blur-sm p-3 rounded-xl border border-white/10 flex flex-col items-center">
-                  <ImageIcon className="w-6 h-6 text-rose-400 mb-1" />
-                  <span className="font-semibold text-white">Mídia Selecionada com Sucesso</span>
-                  <span className="text-[10px] text-emerald-400 mt-0.5">Criptografada localmente com AES-GCM-256</span>
-                </div>
-              </div>
+            <form onSubmit={handlePublish} className="space-y-4">
+              {/* Real PC Folder / Mobile Gallery Picker + Photo/Video Editor */}
+              <MediaUploadPicker
+                valueUrl={pickedMedia.url}
+                mediaType={pickedMedia.mediaType}
+                onChangeMedia={(res) => setPickedMedia(res)}
+                showBuiltInEditor={true}
+                label="Selecionar Mídia (Pastas no Computador ou Galeria no Celular/Tablet)"
+              />
 
               {/* Caption */}
               <div>
-                <label className="font-semibold text-slate-200 block mb-1">
-                  Legenda / Reflexão:
+                <label className="text-xs font-semibold text-white block mb-1.5">
+                  Legenda do seu Momento
                 </label>
                 <textarea
                   value={captionInput}
                   onChange={(e) => setCaptionInput(e.target.value)}
-                  placeholder="Compartilhe seu momento, fetiche ou expressão artística sem filtros morais..."
+                  placeholder="Compartilhe seu desejo, ensaio ou momento especial..."
                   rows={3}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-rose-500 resize-none"
+                  className="w-full bg-[#0D090B] border border-white/10 rounded-2xl p-3.5 text-xs sm:text-sm text-white placeholder-[#FAF5F6]/40 focus:outline-none focus:border-[#E11D48]"
                 />
               </div>
 
-              {/* Tag selector */}
+              {/* Multi-Tag Selector */}
               <div>
-                <label className="font-semibold text-slate-200 block mb-1">Categoria do Momento:</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {['CorpoLivre', 'ArteSensual', 'Lifestyle', 'Shibari', 'NoitePrivé', 'SemFiltro'].map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => setSelectedTag(tag)}
-                      className={`py-1.5 px-2 rounded-lg border text-center transition-all ${
-                        selectedTag === tag
-                          ? 'bg-rose-500/20 border-rose-500 text-rose-200 font-semibold'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      #{tag}
-                    </button>
-                  ))}
+                <label className="text-xs font-semibold text-white block mb-1.5">
+                  Tags de Afinidade (Toque para selecionar)
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    'CorpoLivre',
+                    'ArteSensual',
+                    'Casal',
+                    'Shibari',
+                    'NoitePrivé',
+                    'Lingerie',
+                    'SemFiltro'
+                  ].map((tag) => {
+                    const active = selectedTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTagSelection(tag)}
+                        className={`py-1.5 px-3 rounded-xl border text-xs font-medium transition-all ${
+                          active
+                            ? 'bg-[#E11D48] border-[#E11D48] text-white font-semibold shadow-sm'
+                            : 'bg-[#0D090B] border-white/10 text-[#FAF5F6]/65 hover:text-white'
+                        }`}
+                      >
+                        #{tag}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Self-Destruct Timer */}
               <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Clock className="w-3.5 h-3.5 text-amber-400" />
-                  <label className="font-semibold text-slate-200">Autodestruição do Momento:</label>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { hours: 1, label: '1 Hora' },
-                    { hours: 24, label: '24 Horas' },
-                    { hours: 168, label: '7 Dias' },
-                  ].map((opt) => (
+                <label className="text-xs font-semibold text-white flex items-center gap-1.5 mb-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-300" />
+                  Tempo de Autodestruição no Feed
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {MOMENT_DESTRUCT_OPTIONS.map((opt) => (
                     <button
                       key={opt.hours}
                       type="button"
                       onClick={() => setDestructOption(opt.hours)}
-                      className={`py-1.5 px-2 rounded-lg border text-center transition-all ${
+                      className={`py-2 px-2 rounded-xl border text-center transition-all text-xs font-semibold ${
                         destructOption === opt.hours
-                          ? 'bg-amber-500/20 border-amber-500 text-amber-200 font-semibold'
-                          : 'bg-slate-900 border-slate-800 text-slate-400'
+                          ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+                          : 'bg-[#0D090B] border-white/10 text-[#FAF5F6]/65 hover:text-white'
                       }`}
                     >
                       {opt.label}
@@ -392,39 +605,23 @@ export function LiberalMomentsTab({
                 </div>
               </div>
 
-              {/* VIP Only Toggle */}
-              <div className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl">
-                <div>
-                  <span className="font-semibold text-slate-200 block">Exclusivo para Membros VIP</span>
-                  <span className="text-[10px] text-slate-400">Permite monetizar seu conteúdo no app.</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={isVipOnlyPost}
-                  onChange={(e) => setIsVipOnlyPost(e.target.checked)}
-                  className="w-4 h-4 rounded text-amber-500 bg-slate-800 border-slate-700"
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="pt-2 flex items-center justify-end gap-3">
+              {/* Submit Actions */}
+              <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200"
+                  className="px-4 py-2.5 rounded-xl bg-white/[0.06] text-xs font-semibold text-[#FAF5F6]/80 hover:text-white"
                 >
                   Cancelar
                 </button>
                 <button
-                  type="button"
-                  onClick={handlePublish}
-                  disabled={!captionInput.trim()}
-                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-semibold text-xs transition-all shadow-lg shadow-rose-600/20"
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#E11D48] to-[#BE123C] hover:brightness-110 text-white font-bold text-xs shadow-lg shadow-[#E11D48]/30"
                 >
-                  Cifrar & Publicar Agora
+                  Publicar Momento
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}

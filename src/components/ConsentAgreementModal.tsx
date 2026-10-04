@@ -92,31 +92,31 @@ export function ConsentAgreementModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-[#10131c] border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-[#0B0B0D]/90 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-[#0B0B0D] border border-[#39363B] rounded-3xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden text-[#F4F1F2]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between shrink-0 bg-[#0e1118]">
+        <div className="px-6 py-4 border-b border-[#39363B] flex items-center justify-between shrink-0 bg-[#0B0B0D]">
           <div className="flex items-center gap-2">
-            <HeartHandshake className="w-5 h-5 text-rose-400" />
+            <HeartHandshake className="w-5 h-5 text-[#B5122A]" />
             <div>
-              <h3 className="text-base font-semibold text-slate-100 font-display">
+              <h3 className="text-base font-semibold text-[#F4F1F2] font-display">
                 Filtros de Consentimento & BDSM / Kink
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-[#F4F1F2]/60">
                 Padrões éticos S.S.C. (Seguro, Sóbrio, Consensual) e R.A.C.K.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800"
+            className="p-1 rounded-full text-[#F4F1F2]/60 hover:text-[#F4F1F2] hover:bg-[#39363B]/50 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto space-y-6 text-xs text-slate-300">
+        <div className="p-6 overflow-y-auto space-y-6 text-xs text-[#F4F1F2]/80">
           {/* Diagnostic Quiz Banner Call to Action */}
           {onOpenTestQuiz && (
             <div
@@ -124,35 +124,35 @@ export function ConsentAgreementModal({
                 onClose();
                 onOpenTestQuiz();
               }}
-              className="bg-gradient-to-r from-rose-950/40 via-[#181c2b] to-[#121520] border border-rose-500/40 hover:border-rose-500/70 p-4 rounded-2xl cursor-pointer transition-all flex items-center justify-between shadow-lg"
+              className="bg-gradient-to-r from-[#6F0F20]/40 via-[#0B0B0D] to-[#0B0B0D] border border-[#B5122A]/40 hover:border-[#B5122A]/70 p-4 rounded-2xl cursor-pointer transition-all flex items-center justify-between shadow-lg"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[#B5122A]/20 border border-[#B5122A]/40 flex items-center justify-center text-[#B5122A] shrink-0">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white font-display flex items-center gap-2">
+                  <h4 className="text-xs font-bold text-[#F4F1F2] font-display flex items-center gap-2">
                     <span>Fazer Teste BDSM de Precisão</span>
-                    <span className="px-2 py-0.2 rounded-full bg-rose-500 text-slate-950 font-bold text-[9px] uppercase">
+                    <span className="px-2 py-0.2 rounded-full bg-[#B5122A] text-[#F4F1F2] font-bold text-[9px] uppercase">
                       Novo
                     </span>
                   </h4>
-                  <p className="text-[11px] text-slate-300">
+                  <p className="text-[11px] text-[#F4F1F2]/60">
                     Responda ao quiz diagnóstico com significado de cada prática e descubra suas porcentagens exatas.
                   </p>
                 </div>
               </div>
-              <span className="text-xs text-rose-400 font-semibold underline underline-offset-2 shrink-0 ml-2">
+              <span className="text-xs text-[#B5122A] font-semibold underline underline-offset-2 shrink-0 ml-2">
                 Iniciar Teste
               </span>
             </div>
           )}
 
           {/* Main Toggle */}
-          <div className="flex items-center justify-between p-4 bg-slate-900/80 border border-slate-800 rounded-2xl">
+          <div className="flex items-center justify-between p-4 bg-[#0B0B0D] border border-[#39363B] rounded-2xl">
             <div>
-              <span className="font-semibold text-slate-200 block text-sm">Habilitar preferências de BDSM / Kink</span>
-              <span className="text-[11px] text-slate-400">
+              <span className="font-semibold text-[#F4F1F2] block text-sm">Habilitar preferências de BDSM / Kink</span>
+              <span className="text-[11px] text-[#F4F1F2]/60">
                 Permite encontrar pessoas com afinidade em dinâmicas de poder e fetiches seguros.
               </span>
             </div>
@@ -160,11 +160,11 @@ export function ConsentAgreementModal({
               type="button"
               onClick={() => setEnabled(!enabled)}
               className={`w-12 h-6 rounded-full transition-colors relative ${
-                enabled ? 'bg-rose-500' : 'bg-slate-700'
+                enabled ? 'bg-[#B5122A]' : 'bg-[#39363B]'
               }`}
             >
               <div
-                className={`w-4 h-4 rounded-full bg-white transition-transform absolute top-1 ${
+                className={`w-4 h-4 rounded-full bg-[#F4F1F2] transition-transform absolute top-1 ${
                   enabled ? 'left-7' : 'left-1'
                 }`}
               />
@@ -175,10 +175,10 @@ export function ConsentAgreementModal({
             <>
               {/* Role selection with Practice Meaning */}
               <div>
-                <label className="font-semibold text-slate-200 text-xs block mb-1">
+                <label className="font-semibold text-[#F4F1F2] text-xs block mb-1">
                   Seu Papel ou Identificação Principal:
                 </label>
-                <p className="text-[11px] text-slate-400 mb-2.5">
+                <p className="text-[11px] text-[#F4F1F2]/60 mb-2.5">
                   Cada papel possui uma dinâmica e significado ético específico:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -199,12 +199,12 @@ export function ConsentAgreementModal({
                       onClick={() => setRole(r.name as any)}
                       className={`p-2.5 rounded-xl border text-left transition-all ${
                         role === r.name
-                          ? 'bg-rose-500/20 border-rose-500 text-rose-200 font-semibold shadow-sm'
-                          : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                          ? 'bg-[#B5122A]/20 border-[#B5122A] text-[#F4F1F2] font-semibold shadow-sm'
+                          : 'bg-[#0B0B0D] border-[#39363B] text-[#F4F1F2]/60 hover:border-[#39363B]/80'
                       }`}
                     >
-                      <div className="font-bold text-xs text-white">{r.name}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">{r.desc}</div>
+                      <div className="font-bold text-xs text-[#F4F1F2]">{r.name}</div>
+                      <div className="text-[10px] text-[#F4F1F2]/60 mt-0.5">{r.desc}</div>
                     </button>
                   ))}
                 </div>
@@ -212,10 +212,10 @@ export function ConsentAgreementModal({
 
               {/* Safe Word */}
               <div>
-                <label className="font-semibold text-slate-200 text-xs block mb-1">
+                <label className="font-semibold text-[#F4F1F2] text-xs block mb-1">
                   Palavra de Segurança Padrão (Safe Word):
                 </label>
-                <p className="text-[11px] text-slate-400 mb-2">
+                <p className="text-[11px] text-[#F4F1F2]/60 mb-2">
                   Palavra clara para interrupção imediata de qualquer interação verbal ou física.
                 </p>
                 <input
@@ -223,19 +223,19 @@ export function ConsentAgreementModal({
                   value={safeWord}
                   onChange={(e) => setSafeWord(e.target.value)}
                   placeholder="Ex: Vermelho, Abacaxi, Flor de Lótus"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#0B0B0D] border border-[#39363B] rounded-xl px-3.5 py-2.5 text-xs text-[#F4F1F2] placeholder:text-[#F4F1F2]/40 focus:outline-none focus:border-[#B5122A]"
                 />
               </div>
 
               {/* Hard Limits with Meaning */}
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <ShieldAlert className="w-4 h-4 text-rose-400" />
-                  <label className="font-semibold text-slate-200 text-xs">
+                  <ShieldAlert className="w-4 h-4 text-[#B5122A]" />
+                  <label className="font-semibold text-[#F4F1F2] text-xs">
                     Limites Rígidos (Hard Limits - Não Negociáveis):
                   </label>
                 </div>
-                <p className="text-[11px] text-slate-400 mb-2">
+                <p className="text-[11px] text-[#F4F1F2]/60 mb-2">
                   Práticas estritamente proibidas no seu contato com seus significados:
                 </p>
                 <div className="space-y-1.5 mb-2">
@@ -247,18 +247,18 @@ export function ConsentAgreementModal({
                         onClick={() => toggleHardLimit(item.name)}
                         className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-start justify-between gap-2 ${
                           isSelected
-                            ? 'bg-rose-500/20 border-rose-500 text-rose-200'
-                            : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:text-slate-200'
+                            ? 'bg-[#B5122A]/20 border-[#B5122A] text-[#F4F1F2]'
+                            : 'bg-[#0B0B0D] border-[#39363B] text-[#F4F1F2]/60 hover:text-[#F4F1F2]'
                         }`}
                       >
                         <div>
-                          <span className="font-semibold text-xs block text-slate-200">
+                          <span className="font-semibold text-xs block text-[#F4F1F2]">
                             {isSelected ? '✕ ' : '+ '} {item.name}
                           </span>
-                          <span className="text-[10px] text-slate-400">{item.meaning}</span>
+                          <span className="text-[10px] text-[#F4F1F2]/60">{item.meaning}</span>
                         </div>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                          isSelected ? 'bg-rose-500 text-white' : 'bg-slate-800 text-slate-400'
+                          isSelected ? 'bg-[#B5122A] text-[#F4F1F2]' : 'bg-[#39363B] text-[#F4F1F2]/60'
                         }`}>
                           {isSelected ? 'Proibido' : 'Adicionar'}
                         </span>
@@ -273,12 +273,12 @@ export function ConsentAgreementModal({
                     onChange={(e) => setCustomHard(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddCustomHard()}
                     placeholder="Adicionar outro limite rígido..."
-                    className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-rose-500"
+                    className="flex-1 bg-[#0B0B0D] border border-[#39363B] rounded-xl px-3 py-1.5 text-xs text-[#F4F1F2] placeholder:text-[#F4F1F2]/40 focus:outline-none focus:border-[#B5122A]"
                   />
                   <button
                     type="button"
                     onClick={handleAddCustomHard}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs"
+                    className="px-3 py-1.5 bg-[#39363B] hover:bg-[#39363B]/80 text-[#F4F1F2] rounded-xl text-xs transition-colors"
                   >
                     Adicionar
                   </button>
@@ -288,12 +288,12 @@ export function ConsentAgreementModal({
               {/* Soft Limits with Meaning */}
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Info className="w-4 h-4 text-amber-400" />
-                  <label className="font-semibold text-slate-200 text-xs">
+                  <Info className="w-4 h-4 text-[#B5122A]" />
+                  <label className="font-semibold text-[#F4F1F2] text-xs">
                     Limites Flexíveis (Soft Limits - Abertos a diálogo prévio):
                   </label>
                 </div>
-                <p className="text-[11px] text-slate-400 mb-2">
+                <p className="text-[11px] text-[#F4F1F2]/60 mb-2">
                   Práticas que você tem interesse em explorar com significados definidos:
                 </p>
                 <div className="space-y-1.5 mb-2">
@@ -305,18 +305,18 @@ export function ConsentAgreementModal({
                         onClick={() => toggleSoftLimit(item.name)}
                         className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-start justify-between gap-2 ${
                           isSelected
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-200'
-                            : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:text-slate-200'
+                            ? 'bg-[#6F0F20]/30 border-[#B5122A] text-[#F4F1F2]'
+                            : 'bg-[#0B0B0D] border-[#39363B] text-[#F4F1F2]/60 hover:text-[#F4F1F2]'
                         }`}
                       >
                         <div>
-                          <span className="font-semibold text-xs block text-slate-200">
+                          <span className="font-semibold text-xs block text-[#F4F1F2]">
                             {isSelected ? '✓ ' : '+ '} {item.name}
                           </span>
-                          <span className="text-[10px] text-slate-400">{item.meaning}</span>
+                          <span className="text-[10px] text-[#F4F1F2]/60">{item.meaning}</span>
                         </div>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                          isSelected ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+                          isSelected ? 'bg-[#B5122A] text-[#F4F1F2]' : 'bg-[#39363B] text-[#F4F1F2]/60'
                         }`}>
                           {isSelected ? 'Ativo' : 'Adicionar'}
                         </span>
@@ -331,12 +331,12 @@ export function ConsentAgreementModal({
                     onChange={(e) => setCustomSoft(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSoft()}
                     placeholder="Adicionar outro interesse flexível..."
-                    className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                    className="flex-1 bg-[#0B0B0D] border border-[#39363B] rounded-xl px-3 py-1.5 text-xs text-[#F4F1F2] placeholder:text-[#F4F1F2]/40 focus:outline-none focus:border-[#B5122A]"
                   />
                   <button
                     type="button"
                     onClick={handleAddCustomSoft}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs"
+                    className="px-3 py-1.5 bg-[#39363B] hover:bg-[#39363B]/80 text-[#F4F1F2] rounded-xl text-xs transition-colors"
                   >
                     Adicionar
                   </button>
@@ -344,17 +344,17 @@ export function ConsentAgreementModal({
               </div>
 
               {/* Strict Consent Charter */}
-              <div className="p-4 bg-rose-950/20 border border-rose-900/50 rounded-2xl">
+              <div className="p-4 bg-[#6F0F20]/20 border border-[#B5122A]/40 rounded-2xl">
                 <div className="flex items-start gap-3">
                   <input
                     type="checkbox"
                     id="consentTerms"
                     checked={acceptedTerms}
                     onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded text-rose-500 bg-slate-900 border-slate-700 focus:ring-0 cursor-pointer"
+                    className="mt-1 w-4 h-4 rounded text-[#B5122A] bg-[#0B0B0D] border-[#39363B] focus:ring-0 cursor-pointer"
                   />
-                  <label htmlFor="consentTerms" className="text-[11px] text-slate-300 leading-relaxed cursor-pointer">
-                    <strong className="text-rose-300 block mb-1">
+                  <label htmlFor="consentTerms" className="text-[11px] text-[#F4F1F2]/80 leading-relaxed cursor-pointer">
+                    <strong className="text-[#B5122A] block mb-1">
                       Termo Ético de Consentimento Informado e Tolerância Zero:
                     </strong>
                     Declaro que tenho 18 anos ou mais, compreendo que consentimento pode ser revogado a qualquer momento verbalmente ou pela palavra de segurança, e que qualquer violação de limites acordados resultará em banimento perpétuo e denúncia imediata.
@@ -366,18 +366,18 @@ export function ConsentAgreementModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-800/80 bg-[#0e1118] shrink-0 flex items-center justify-end gap-3">
+        <div className="p-4 border-t border-[#39363B] bg-[#0B0B0D] shrink-0 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200"
+            className="px-4 py-2.5 rounded-xl text-xs font-medium text-[#F4F1F2]/60 hover:text-[#F4F1F2] transition-colors"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-all shadow-lg shadow-rose-600/20"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#B5122A] to-[#6F0F20] hover:from-[#B5122A]/90 hover:to-[#6F0F20]/90 text-[#F4F1F2] font-semibold text-xs transition-all shadow-lg shadow-[#B5122A]/25"
           >
             Salvar Preferências e Limites
           </button>

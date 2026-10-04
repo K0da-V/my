@@ -1,60 +1,69 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --color-preto: #0f0e11;
+    --color-superficie: #17151a;
+    --color-vermelho: #e11d48;
+    --color-vinho: #881337;
+    --color-dourado: #d97706;
+    --color-gelo: #f7f5f6;
+    --color-cinza: #26232b;
+  }
+
   body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #08090c;
-    color: #e2e8f0;
+    background-color: #0f0e11;
+    color: #f7f5f6;
+    font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
 
-  h1, h2, h3, .font-display {
-    font-family: 'Syne', 'Plus Jakarta Sans', sans-serif;
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-mono {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   }
 }
 
-/* Custom discreet scrollbar */
+/* Clean, human-crafted matte cards without artificial AI glow */
+.velvet-card {
+  background-color: #17151a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.55);
+}
+
+.velvet-card-hover {
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.velvet-card-hover:hover {
+  border-color: rgba(225, 29, 72, 0.35);
+}
+
+.text-gradient-ruby {
+  color: #fb7185;
+}
+
+/* Custom subtle scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #0d0f14;
+  background: #0f0e11;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #232733;
+  background: #2e2933;
   border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #363c4e;
+  background: #e11d48;
 }
-
-/* Radar pulse animation */
-@keyframes radar-ping {
-  0% {
-    transform: scale(0.6);
-    opacity: 0.8;
-  }
-  70% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(2.5);
-    opacity: 0;
-  }
-}
-
-.animate-radar-ring {
-  animation: radar-ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-/* Privacy shield overlay */
-.privacy-blur {
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-}
-

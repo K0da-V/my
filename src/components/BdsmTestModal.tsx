@@ -173,40 +173,40 @@ export function BdsmTestModal({
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-[#10131c] border border-rose-500/30 rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden relative">
+    <div className="fixed inset-0 z-50 bg-[#0B0B0D]/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-[#0B0B0D] border border-[#39363B] rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden relative text-[#F4F1F2]">
         {/* Header with Navigation between Quiz & Practice Definitions */}
-        <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between shrink-0 bg-[#0e1017]">
+        <div className="px-5 py-4 border-b border-[#39363B] flex items-center justify-between shrink-0 bg-[#0B0B0D]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+            <div className="w-9 h-9 rounded-xl bg-[#B5122A]/15 border border-[#B5122A]/40 flex items-center justify-center text-[#B5122A]">
               <Flame className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white font-display">
+              <h3 className="text-base font-bold text-[#F4F1F2] font-display">
                 Diagnóstico & Guia Completo de BDSM
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-[#F4F1F2]/60">
                 Teste de afinidades de alta precisão e significado detalhado de cada prática
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800"
+            className="p-1 rounded-full text-[#F4F1F2]/60 hover:text-[#F4F1F2] hover:bg-[#39363B]/50 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Switcher: Teste Diagnóstico vs Dicionário de Práticas */}
-        <div className="flex border-b border-slate-800 bg-[#0b0d13] px-5 text-xs font-semibold shrink-0">
+        <div className="flex border-b border-[#39363B] bg-[#0B0B0D] px-5 text-xs font-semibold shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('quiz')}
             className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-all ${
               activeTab === 'quiz'
-                ? 'border-rose-500 text-rose-300 font-bold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#B5122A] text-[#B5122A] font-bold'
+                : 'border-transparent text-[#F4F1F2]/60 hover:text-[#F4F1F2]'
             }`}
           >
             <Sparkles className="w-4 h-4" />
@@ -217,8 +217,8 @@ export function BdsmTestModal({
             onClick={() => setActiveTab('catalog')}
             className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-all ${
               activeTab === 'catalog'
-                ? 'border-rose-500 text-rose-300 font-bold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#B5122A] text-[#B5122A] font-bold'
+                : 'border-transparent text-[#F4F1F2]/60 hover:text-[#F4F1F2]'
             }`}
           >
             <BookOpen className="w-4 h-4" />
@@ -235,17 +235,17 @@ export function BdsmTestModal({
               <div className="space-y-5">
                 {/* Progress bar */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs text-slate-400">
-                    <span className="font-mono text-rose-400 font-semibold">
+                  <div className="flex justify-between text-xs text-[#F4F1F2]/60">
+                    <span className="font-mono text-[#B5122A] font-semibold">
                       Pergunta {currentQuestionIndex + 1} de {totalQuestions}
                     </span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[11px] text-[#F4F1F2]/60">
                       {Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100)}% concluído
                     </span>
                   </div>
-                  <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-[#0B0B0D] border border-[#39363B] h-1.5 rounded-full overflow-hidden">
                     <div
-                      className="bg-gradient-to-r from-rose-500 to-amber-500 h-full transition-all duration-300"
+                      className="bg-gradient-to-r from-[#B5122A] to-[#6F0F20] h-full transition-all duration-300"
                       style={{
                         width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`,
                       }}
@@ -254,14 +254,14 @@ export function BdsmTestModal({
                 </div>
 
                 {/* Category Badge & Question Title */}
-                <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-400 block mb-1">
+                <div className="bg-[#0B0B0D] border border-[#39363B] rounded-2xl p-4">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#B5122A] block mb-1">
                     Dimensão: {currentQ.category}
                   </span>
-                  <h4 className="text-base font-bold text-white font-display mb-1">
+                  <h4 className="text-base font-bold text-[#F4F1F2] font-display mb-1">
                     {currentQ.question}
                   </h4>
-                  <p className="text-xs text-slate-400">{currentQ.description}</p>
+                  <p className="text-xs text-[#F4F1F2]/60">{currentQ.description}</p>
                 </div>
 
                 {/* Answer Options */}
@@ -275,15 +275,15 @@ export function BdsmTestModal({
                         onClick={() => handleSelectOption(currentQ.id, idx)}
                         className={`w-full text-left p-3.5 rounded-2xl border text-xs leading-relaxed transition-all flex items-start gap-3 ${
                           isSelected
-                            ? 'bg-rose-500/20 border-rose-500 text-rose-100 font-semibold ring-1 ring-rose-500/50 shadow-md'
-                            : 'bg-slate-900/40 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
+                            ? 'bg-[#B5122A]/20 border-[#B5122A] text-[#F4F1F2] font-semibold ring-1 ring-[#B5122A]/50 shadow-md'
+                            : 'bg-[#0B0B0D] border-[#39363B] text-[#F4F1F2]/80 hover:border-[#39363B]/80 hover:bg-[#39363B]/10'
                         }`}
                       >
                         <div
                           className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
                             isSelected
-                              ? 'border-rose-400 bg-rose-500 text-slate-950 font-bold text-[10px]'
-                              : 'border-slate-700 text-slate-500'
+                              ? 'border-[#B5122A] bg-[#B5122A] text-[#F4F1F2] font-bold text-[10px]'
+                              : 'border-[#39363B] text-[#F4F1F2]/60'
                           }`}
                         >
                           {isSelected ? '✓' : String.fromCharCode(65 + idx)}
@@ -300,7 +300,7 @@ export function BdsmTestModal({
                     type="button"
                     onClick={handlePrev}
                     disabled={currentQuestionIndex === 0}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-30 flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-[#F4F1F2]/60 hover:text-[#F4F1F2] disabled:opacity-30 flex items-center gap-1.5 transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Anterior</span>
@@ -310,7 +310,7 @@ export function BdsmTestModal({
                     type="button"
                     onClick={handleNext}
                     disabled={!isQuestionAnswered}
-                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 disabled:opacity-40 text-white font-bold text-xs transition-all shadow-lg shadow-rose-500/20 flex items-center gap-2"
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#B5122A] to-[#6F0F20] hover:from-[#B5122A]/90 hover:to-[#6F0F20]/90 disabled:opacity-40 text-[#F4F1F2] font-bold text-xs transition-all shadow-lg shadow-[#B5122A]/20 flex items-center gap-2"
                   >
                     <span>
                       {currentQuestionIndex === totalQuestions - 1
@@ -325,17 +325,17 @@ export function BdsmTestModal({
               /* Diagnostic Results Dashboard */
               <div className="space-y-6">
                 {/* Primary Archetype Banner */}
-                <div className="bg-gradient-to-br from-rose-950/40 via-[#131622] to-[#0e1017] border border-rose-500/40 rounded-3xl p-5 text-center relative overflow-hidden shadow-2xl">
-                  <div className="w-14 h-14 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center mx-auto mb-2 shadow-lg">
+                <div className="bg-gradient-to-br from-[#6F0F20]/40 via-[#0B0B0D] to-[#0B0B0D] border border-[#B5122A]/40 rounded-3xl p-5 text-center relative overflow-hidden shadow-2xl">
+                  <div className="w-14 h-14 rounded-2xl bg-[#B5122A]/20 border border-[#B5122A]/40 text-[#B5122A] flex items-center justify-center mx-auto mb-2 shadow-lg">
                     <Award className="w-7 h-7" />
                   </div>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-rose-400 block mb-1">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#B5122A] block mb-1">
                     Seu Arquétipo BDSM Predominante
                   </span>
-                  <h3 className="text-2xl font-extrabold text-white font-display mb-1">
+                  <h3 className="text-2xl font-extrabold text-[#F4F1F2] font-display mb-1">
                     {calculatedResult.topRole}
                   </h3>
-                  <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+                  <p className="text-xs text-[#F4F1F2]/80 max-w-md mx-auto leading-relaxed">
                     Com base nas suas respostas, sua principal expressão erótica de poder e estímulo está alinhada a este perfil.
                   </p>
                 </div>
@@ -343,13 +343,13 @@ export function BdsmTestModal({
                 {/* Score breakdown across all practices */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#F4F1F2]">
                       Mapa de Afinidade por Prática:
                     </span>
                     <button
                       type="button"
                       onClick={() => setActiveTab('catalog')}
-                      className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 font-medium"
+                      className="text-xs text-[#B5122A] hover:text-[#B5122A]/80 flex items-center gap-1 font-medium transition-colors"
                     >
                       <span>Ver o que significa cada uma</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -366,28 +366,28 @@ export function BdsmTestModal({
                       return (
                         <div
                           key={score.practiceId}
-                          className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3.5 space-y-2"
+                          className="bg-[#0B0B0D] border border-[#39363B] rounded-2xl p-3.5 space-y-2"
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <span className="font-bold text-xs text-slate-200 block">
+                              <span className="font-bold text-xs text-[#F4F1F2] block">
                                 {score.name}
                               </span>
-                              <span className="text-[11px] text-slate-400 block">
+                              <span className="text-[11px] text-[#F4F1F2]/60 block">
                                 {practiceDef?.shortMeaning}
                               </span>
                             </div>
                             <div className="text-right shrink-0 ml-3">
-                              <span className="text-sm font-mono font-bold text-rose-400">
+                              <span className="text-sm font-mono font-bold text-[#B5122A]">
                                 {score.percentage}%
                               </span>
                               <span
                                 className={`text-[10px] font-semibold block ${
                                   score.percentage >= 75
-                                    ? 'text-emerald-400'
+                                    ? 'text-[#B5122A]'
                                     : score.percentage >= 45
-                                    ? 'text-amber-400'
-                                    : 'text-slate-400'
+                                    ? 'text-[#F4F1F2]'
+                                    : 'text-[#F4F1F2]/60'
                                 }`}
                               >
                                 {score.affinityLevel}
@@ -396,14 +396,14 @@ export function BdsmTestModal({
                           </div>
 
                           {/* Progress bar */}
-                          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                          <div className="w-full bg-[#39363B]/50 h-2 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-500 ${
                                 score.percentage >= 75
-                                  ? 'bg-rose-500'
+                                  ? 'bg-[#B5122A]'
                                   : score.percentage >= 45
-                                  ? 'bg-amber-500'
-                                  : 'bg-slate-600'
+                                  ? 'bg-[#6F0F20]'
+                                  : 'bg-[#39363B]'
                               }`}
                               style={{ width: `${score.percentage}%` }}
                             />
@@ -419,7 +419,7 @@ export function BdsmTestModal({
                   <button
                     type="button"
                     onClick={handleRestartQuiz}
-                    className="w-full sm:w-auto px-4 py-3 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-4 py-3 rounded-xl border border-[#39363B] bg-[#0B0B0D] hover:bg-[#39363B]/20 text-[#F4F1F2]/80 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <RotateCcw className="w-4 h-4" />
                     <span>Refazer Teste</span>
@@ -428,7 +428,7 @@ export function BdsmTestModal({
                   <button
                     type="button"
                     onClick={handleSaveToProfile}
-                    className="w-full flex-1 py-3 px-6 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white font-bold text-xs transition-all shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2"
+                    className="w-full flex-1 py-3 px-6 rounded-xl bg-gradient-to-r from-[#B5122A] to-[#6F0F20] hover:from-[#B5122A]/90 hover:to-[#6F0F20]/90 text-[#F4F1F2] font-bold text-xs transition-all shadow-lg shadow-[#B5122A]/25 flex items-center justify-center gap-2"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Salvar Resultados no Meu Perfil Aura Privé</span>
@@ -442,13 +442,13 @@ export function BdsmTestModal({
               {/* Search & Filter Bar */}
               <div className="space-y-2">
                 <div className="relative">
-                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <Search className="w-4 h-4 text-[#F4F1F2]/40 absolute left-3 top-3" />
                   <input
                     type="text"
                     value={searchCatalogQuery}
                     onChange={(e) => setSearchCatalogQuery(e.target.value)}
                     placeholder="Buscar prática por nome ou termo (ex: Shibari, Aftercare, Cera, Spanking)..."
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[#0B0B0D] border border-[#39363B] rounded-xl pl-9 pr-4 py-2.5 text-xs text-[#F4F1F2] placeholder:text-[#F4F1F2]/40 focus:outline-none focus:border-[#B5122A]"
                   />
                 </div>
 
@@ -468,8 +468,8 @@ export function BdsmTestModal({
                       onClick={() => setSelectedCatalogCategory(cat)}
                       className={`text-[11px] px-2.5 py-1 rounded-lg border whitespace-nowrap transition-colors ${
                         selectedCatalogCategory === cat
-                          ? 'bg-rose-500/20 border-rose-500 text-rose-200 font-semibold'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                          ? 'bg-[#B5122A]/20 border-[#B5122A] text-[#F4F1F2] font-semibold'
+                          : 'bg-[#0B0B0D] border-[#39363B] text-[#F4F1F2]/60 hover:text-[#F4F1F2]'
                       }`}
                     >
                       {cat === 'all' ? 'Todas as Categorias' : cat}
@@ -485,7 +485,7 @@ export function BdsmTestModal({
                   return (
                     <div
                       key={practice.id}
-                      className="bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all"
+                      className="bg-[#0B0B0D] border border-[#39363B] hover:border-[#39363B]/80 rounded-2xl p-4 transition-all"
                     >
                       <div
                         onClick={() =>
@@ -494,18 +494,18 @@ export function BdsmTestModal({
                         className="cursor-pointer flex items-start justify-between gap-3"
                       >
                         <div>
-                          <span className="text-[10px] font-mono text-rose-400 uppercase font-semibold block mb-0.5">
+                          <span className="text-[10px] font-mono text-[#B5122A] uppercase font-semibold block mb-0.5">
                             {practice.category}
                           </span>
-                          <h4 className="text-sm font-bold text-white font-display">
+                          <h4 className="text-sm font-bold text-[#F4F1F2] font-display">
                             {practice.name}
                           </h4>
-                          <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                            <strong className="text-rose-300">Significado: </strong>
+                          <p className="text-xs text-[#F4F1F2]/80 mt-1 leading-relaxed">
+                            <strong className="text-[#B5122A]">Significado: </strong>
                             {practice.shortMeaning}
                           </p>
                         </div>
-                        <div className="p-1 rounded-lg text-slate-400 hover:text-white shrink-0 mt-1">
+                        <div className="p-1 rounded-lg text-[#F4F1F2]/60 hover:text-[#F4F1F2] shrink-0 mt-1">
                           {isExpanded ? (
                             <ChevronUp className="w-4 h-4" />
                           ) : (
@@ -516,22 +516,22 @@ export function BdsmTestModal({
 
                       {/* Expanded In-Depth Meaning & Safety Protocol */}
                       {isExpanded && (
-                        <div className="mt-4 pt-4 border-t border-slate-800 space-y-3 text-xs animate-in fade-in duration-200">
+                        <div className="mt-4 pt-4 border-t border-[#39363B] space-y-3 text-xs animate-in fade-in duration-200">
                           <div>
-                            <span className="font-bold text-slate-200 block mb-1 text-[11px] uppercase tracking-wider">
+                            <span className="font-bold text-[#F4F1F2] block mb-1 text-[11px] uppercase tracking-wider">
                               Como funciona a prática em detalhes:
                             </span>
-                            <p className="text-slate-300 leading-relaxed bg-[#0b0d13] p-3 rounded-xl border border-slate-800/80">
+                            <p className="text-[#F4F1F2]/80 leading-relaxed bg-[#0B0B0D] p-3 rounded-xl border border-[#39363B]">
                               {practice.detailedMeaning}
                             </p>
                           </div>
 
                           <div>
-                            <span className="font-bold text-amber-400 flex items-center gap-1.5 mb-1 text-[11px] uppercase tracking-wider">
+                            <span className="font-bold text-[#B5122A] flex items-center gap-1.5 mb-1 text-[11px] uppercase tracking-wider">
                               <ShieldCheck className="w-3.5 h-3.5" />
                               Protocolo de Segurança & Consentimento Obrigatório:
                             </span>
-                            <p className="text-amber-200/90 leading-relaxed bg-amber-950/20 p-3 rounded-xl border border-amber-900/40">
+                            <p className="text-[#F4F1F2]/90 leading-relaxed bg-[#6F0F20]/20 p-3 rounded-xl border border-[#B5122A]/30">
                               {practice.safetyGuidelines}
                             </p>
                           </div>

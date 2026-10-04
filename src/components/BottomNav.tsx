@@ -1,4 +1,4 @@
-import { Flame, Sparkles, MapPin, MessageSquare, User as UserIcon } from 'lucide-react';
+import { Flame, Sparkles, MapPin, MessageCircle, User as UserIcon } from 'lucide-react';
 import { TabType } from '../types';
 
 interface BottomNavProps {
@@ -9,15 +9,15 @@ interface BottomNavProps {
 
 export function BottomNav({ currentTab, onSelectTab, unreadChatCount = 0 }: BottomNavProps) {
   const tabs = [
-    { id: 'connect' as TabType, label: 'Conectar', icon: Flame },
+    { id: 'connect' as TabType, label: 'Descobrir', icon: Flame },
     { id: 'moments' as TabType, label: 'Momentos', icon: Sparkles },
     { id: 'venues' as TabType, label: 'Encontros', icon: MapPin },
-    { id: 'chat' as TabType, label: 'Mensagens', icon: MessageSquare, badge: unreadChatCount },
-    { id: 'profile' as TabType, label: 'Meu Perfil', icon: UserIcon },
+    { id: 'chat' as TabType, label: 'Mensagens', icon: MessageCircle, badge: unreadChatCount },
+    { id: 'profile' as TabType, label: 'Perfil', icon: UserIcon },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#0c0e15]/95 backdrop-blur-md border-t border-slate-800/80 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#0D090B]/95 backdrop-blur-xl border-t border-white/[0.08] md:hidden">
       <div className="grid grid-cols-5 items-center h-16 max-w-lg mx-auto px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -27,31 +27,31 @@ export function BottomNav({ currentTab, onSelectTab, unreadChatCount = 0 }: Bott
               key={tab.id}
               type="button"
               onClick={() => onSelectTab(tab.id)}
-              className="flex flex-col items-center justify-center min-h-[44px] relative py-1 focus:outline-none"
+              className="flex flex-col items-center justify-center min-h-[46px] relative py-1 focus:outline-none"
             >
               <div className="relative">
                 <Icon
-                  className={`w-5 h-5 transition-transform ${
+                  className={`w-5 h-5 transition-all duration-200 ${
                     isActive
-                      ? 'text-rose-400 scale-110'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'text-[#FB7185] scale-110'
+                      : 'text-[#FAF5F6]/50 hover:text-[#FAF5F6]'
                   }`}
                 />
                 {tab.badge && tab.badge > 0 ? (
-                  <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center">
+                  <span className="absolute -top-1.5 -right-2.5 bg-gradient-to-r from-[#E11D48] to-[#FB7185] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center shadow-sm">
                     {tab.badge}
                   </span>
                 ) : null}
               </div>
               <span
                 className={`text-[10px] font-medium tracking-tight mt-1 transition-colors ${
-                  isActive ? 'text-rose-400 font-semibold' : 'text-slate-400'
+                  isActive ? 'text-[#FB7185] font-semibold' : 'text-[#FAF5F6]/60'
                 }`}
               >
                 {tab.label}
               </span>
               {isActive && (
-                <div className="w-1 h-1 rounded-full bg-rose-400 mt-0.5" />
+                <div className="w-1.5 h-1 rounded-full bg-gradient-to-r from-[#E11D48] to-[#FB7185] mt-0.5" />
               )}
             </button>
           );

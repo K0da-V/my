@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Sliders } from 'lucide-react';
 import {
   TabType,
   User,
@@ -20,7 +21,8 @@ import {
   GroupMemberRole,
   UserStatusStory,
   LiveStreamSession,
-  AdultContentItem
+  AdultContentItem,
+  SiteAdminConfig
 } from './types';
 import {
   INITIAL_CURRENT_USER,
@@ -42,6 +44,9 @@ import { BdsmTestModal } from './components/BdsmTestModal';
 import { ReportModal } from './components/ReportModal';
 import { AuthScreen } from './components/AuthScreen';
 import { StatusAndLiveBar } from './components/StatusAndLiveBar';
+import { CoinStoreModal } from './components/CoinStoreModal';
+import { OnboardingSurveyModal } from './components/OnboardingSurveyModal';
+import { PainelAdm, DEFAULT_SITE_ADMIN_CONFIG } from './components/PainelAdm';
 import { ConnectTab } from './components/tabs/ConnectTab';
 import { LiberalMomentsTab } from './components/tabs/LiberalMomentsTab';
 import { EncontrosTab } from './components/tabs/EncontrosTab';
@@ -61,7 +66,38 @@ export default function App() {
   const [isVerificationOpen, setIsVerificationOpen] = useState<boolean>(false);
   const [isVipModalOpen, setIsVipModalOpen] = useState<boolean>(false);
   const [isBdsmTestOpen, setIsBdsmTestOpen] = useState<boolean>(false);
+  const [isCoinStoreOpen, setIsCoinStoreOpen] = useState<boolean>(false);
+  const [isOnboardingSurveyOpen, setIsOnboardingSurveyOpen] = useState<boolean>(false);
   const [reportTargetUser, setReportTargetUser] = useState<User | null>(null);
+
+  // Exclusive Owner Admin Panel Config & Visibility Control
+  const [adminConfig, setAdminConfig] = useState<SiteAdminConfig>(() => {
+    try {
+      const saved = localStorage.getItem('aura_prive_admin_config_v1');
+      if (saved) {
+        return { ...DEFAULT_SITE_ADMIN_CONFIG, ...JSON.parse(saved) };
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return DEFAULT_SITE_ADMIN_CONFIG;
+  });
+  const [simulateNormalVisitor, setSimulateNormalVisitor] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('aura_prive_admin_config_v1', JSON.stringify(adminConfig));
+    } catch {
+      // ignore storage errors
+    }
+  }, [adminConfig]);
+
+  // Only available here in the Studio / Owner environment (hidden from normal visitors)
+  const isOwnerStudioEnvironment =
+    typeof window !== 'undefined' &&
+    (window.location.hostname.includes('ais-dev') ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1');
 
   // Core App Data
   const [currentUser, setCurrentUser] = useState<User>(INITIAL_CURRENT_USER);
@@ -92,6 +128,9 @@ export default function App() {
       email: authData.email,
       phone: authData.phone || prev.phone,
       authProvider: authData.provider,
+      coinsBalance: authData.isNewRegistration
+        ? adminConfig.initialUserCoins
+        : prev.coinsBalance ?? adminConfig.initialUserCoins,
       isSellerVerified: authData.isNewRegistration ? false : prev.isSellerVerified,
       sellerProfile: prev.sellerProfile
         ? {
@@ -103,6 +142,31 @@ export default function App() {
         : undefined
     }));
     setIsAuthenticated(true);
+    // Open brief onboarding profile survey automatically when creating a new account
+    if (authData.isNewRegistration && adminConfig.enablePostSignupSurvey) {
+      setIsOnboardingSurveyOpen(true);
+    }
+  };
+
+  // Coin System Handlers
+  const handleAddCoins = (coinsAdded: number) => {
+    setCurrentUser((prev) => ({
+      ...prev,
+      coinsBalance: (prev.coinsBalance ?? 0) + coinsAdded
+    }));
+  };
+
+  const handleSpendCoins = (amount: number): boolean => {
+    const currentBalance = currentUser.coinsBalance ?? 0;
+    if (currentBalance < amount) {
+      setIsCoinStoreOpen(true);
+      return false;
+    }
+    setCurrentUser((prev) => ({
+      ...prev,
+      coinsBalance: Math.max(0, (prev.coinsBalance ?? 0) - amount)
+    }));
+    return true;
   };
 
   // Verification completion handler (RG/CNH + 3D Facial Liveness)
@@ -535,6 +599,13 @@ export default function App() {
 
   const totalUnreadCount = conversations.reduce((acc, c) => acc + c.unreadCount, 0);
 
+  const isOwnerAuthenticated =
+    isOwnerStudioEnvironment ||
+    currentUser.email?.toLowerCase() === 'bobbocao7@gmail.com' ||
+    currentUser.email?.toLowerCase() === 'alexandre.prive@auraprive.com';
+
+  const canSeeAdminTab = isOwnerAuthenticated && !simulateNormalVisitor;
+
   if (isStealthActive) {
     return <StealthCamouflage onUnlock={() => setIsStealthActive(false)} />;
   }
@@ -544,7 +615,28 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col selection:bg-[#E11D48] selection:text-white">
+    <div
+      className="min-h-screen flex flex-col selection:bg-[#E11D48] selection:text-white"
+      style={{
+        backgroundColor: adminConfig.bgColor || '#0D090B',
+        ['--aura-primary' as string]: adminConfig.primaryColor || '#E11D48',
+        ['--aura-accent' as string]: adminConfig.accentColor || '#FB7185',
+        ['--aura-card-bg' as string]: adminConfig.cardBgColor || '#161013'
+      }}
+    >
+      {/* Dynamic Style Injection from PAINEL ADM & AI Design Studio */}
+      <style>{`
+        .velvet-card {
+          background-color: ${adminConfig.cardBgColor || '#161013'} !important;
+          border-radius: ${
+            adminConfig.borderRadiusStyle === 'editorial'
+              ? '16px'
+              : adminConfig.borderRadiusStyle === 'soft'
+              ? '24px'
+              : '32px'
+          } !important;
+        }
+      `}</style>
       <VerificationModal
         isOpen={isVerificationOpen}
         onClose={() => setIsVerificationOpen(false)}
@@ -580,6 +672,26 @@ export default function App() {
         }}
       />
 
+      <CoinStoreModal
+        isOpen={isCoinStoreOpen}
+        onClose={() => setIsCoinStoreOpen(false)}
+        currentBalance={currentUser.coinsBalance ?? 0}
+        onPurchaseCoins={(coinsAdded) => handleAddCoins(coinsAdded)}
+        customPackages={adminConfig.coinPackages}
+      />
+
+      <OnboardingSurveyModal
+        isOpen={isOnboardingSurveyOpen}
+        user={currentUser}
+        onCompleteSurvey={(updates) => {
+          setCurrentUser((prev) => ({
+            ...prev,
+            ...updates
+          }));
+          setIsOnboardingSurveyOpen(false);
+        }}
+      />
+
       <Header
         currentTab={currentTab}
         onSelectTab={(tab) => {
@@ -588,10 +700,35 @@ export default function App() {
         }}
         onTriggerStealth={() => setIsStealthActive(true)}
         onOpenVip={() => setIsVipModalOpen(true)}
+        onOpenCoins={() => setIsCoinStoreOpen(true)}
         onLogout={() => setIsAuthenticated(false)}
         vipTier={currentUser.vipTier}
         isGhostMode={Boolean(currentUser.privacySettings?.ghostMode)}
+        coinsBalance={currentUser.coinsBalance ?? 0}
+        showAdminTab={canSeeAdminTab}
+        adminConfig={adminConfig}
       />
+
+      {/* Discreet Owner Bar when simulating a normal visitor */}
+      {isOwnerAuthenticated && simulateNormalVisitor && (
+        <div className="bg-amber-500/15 border-b border-amber-400/30 px-4 py-1.5 flex items-center justify-between text-xs text-amber-200">
+          <span>
+            Modo de Simulação Ativo: Você está vendo o site como um visitante comum (aba{' '}
+            <strong>PAINEL ADM</strong> oculta).
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setSimulateNormalVisitor(false);
+              setCurrentTab('admin');
+            }}
+            className="px-3 py-1 rounded-lg bg-amber-400 text-black font-bold flex items-center gap-1"
+          >
+            <Sliders className="w-3 h-3" />
+            Voltar ao PAINEL ADM
+          </button>
+        </div>
+      )}
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-20 md:pb-12">
         {(currentTab === 'connect' || currentTab === 'moments') && (
@@ -608,6 +745,8 @@ export default function App() {
               setProfileSubTab('seller');
               setCurrentTab('profile');
             }}
+            onSpendCoins={handleSpendCoins}
+            onOpenCoinStore={() => setIsCoinStoreOpen(true)}
           />
         )}
 
@@ -622,6 +761,8 @@ export default function App() {
             onStartVerify={() => setIsVerificationOpen(true)}
             onOpenVip={() => setIsVipModalOpen(true)}
             onOpenBdsmTest={() => setIsBdsmTestOpen(true)}
+            onSpendCoins={handleSpendCoins}
+            onOpenCoinStore={() => setIsCoinStoreOpen(true)}
           />
         )}
 
@@ -637,6 +778,8 @@ export default function App() {
               setCurrentTab('profile');
             }}
             onOpenReport={(author) => setReportTargetUser(author)}
+            onSpendCoins={handleSpendCoins}
+            onOpenCoinStore={() => setIsCoinStoreOpen(true)}
           />
         )}
 
@@ -709,6 +852,29 @@ export default function App() {
             }}
             stories={stories}
             onAddStory={(newStory) => setStories((prev) => [newStory, ...prev])}
+          />
+        )}
+
+        {currentTab === 'admin' && canSeeAdminTab && (
+          <PainelAdm
+            config={adminConfig}
+            onUpdateConfig={setAdminConfig}
+            onResetConfig={() => setAdminConfig(DEFAULT_SITE_ADMIN_CONFIG)}
+            currentUser={currentUser}
+            onUpdateCurrentUser={(updates) =>
+              setCurrentUser((prev) => ({ ...prev, ...updates }))
+            }
+            profiles={profiles}
+            onUpdateProfiles={setProfiles}
+            venues={venues}
+            onUpdateVenues={setVenues}
+            moments={moments}
+            groups={groups}
+            onSimulateNormalVisitorView={() => {
+              setSimulateNormalVisitor(true);
+              setCurrentTab('connect');
+            }}
+            onTriggerOnboardingSurvey={() => setIsOnboardingSurveyOpen(true)}
           />
         )}
       </main>

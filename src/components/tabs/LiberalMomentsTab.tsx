@@ -13,10 +13,19 @@ import {
   X,
   Flag,
   Send,
-  Flame
+  Flame,
+  Coins,
+  Gift
 } from 'lucide-react';
 import { LiberalMoment, User } from '../../types';
 import { MediaUploadPicker, EditedMediaResult } from '../MediaUploadPicker';
+
+export const CREATOR_GIFTS = [
+  { id: 'gift_rose', label: 'Rosa de Veludo 🌹', coins: 10 },
+  { id: 'gift_drink', label: 'Taça de Champagne 🥂', coins: 25 },
+  { id: 'gift_flame', label: 'Chama Sensual 🔥', coins: 50 },
+  { id: 'gift_crown', label: 'Coroa Privé 👑', coins: 100 }
+];
 
 export const MOMENT_DESTRUCT_OPTIONS = [
   { hours: 0, label: 'Permanente' },
@@ -30,6 +39,8 @@ interface LiberalMomentsTabProps {
   moments: LiberalMoment[];
   onAddMoment: (moment: LiberalMoment) => void;
   onUnlockMomentSale?: (momentId: string, price: number) => void;
+  onSpendCoins?: (coins: number, description: string) => boolean;
+  onOpenCoinStore?: (reason?: string) => void;
   onOpenVip: () => void;
   onOpenSellerHub?: () => void;
   onOpenReport: (author: User) => void;
@@ -40,6 +51,8 @@ export function LiberalMomentsTab({
   moments,
   onAddMoment,
   onUnlockMomentSale,
+  onSpendCoins,
+  onOpenCoinStore,
   onOpenReport
 }: LiberalMomentsTabProps) {
   const [revealedMomentIds, setRevealedMomentIds] = useState<string[]>([]);
@@ -48,6 +61,11 @@ export function LiberalMomentsTab({
     moments.filter((m) => m.isLiked).map((m) => m.id)
   );
   const [activeFilterTag, setActiveFilterTag] = useState<string>('Todos');
+
+  // Gift Drawer & Counter per moment
+  const [openGiftMomentId, setOpenGiftMomentId] = useState<string | null>(null);
+  const [momentGiftsCount, setMomentGiftsCount] = useState<Record<string, number>>({});
+  const [giftSuccessBanner, setGiftSuccessBanner] = useState<Record<string, string>>({});
 
   // Comments Drawer State per moment
   const [openCommentsMomentId, setOpenCommentsMomentId] = useState<string | null>(null);
@@ -99,12 +117,64 @@ export function LiberalMomentsTab({
     );
   };
 
+  const getRequiredCoinsForMoment = (moment: LiberalMoment) => {
+    const brl = moment.salePrice || 35;
+    return Math.max(10, Math.round(brl));
+  };
+
   const handleUnlockPaidMoment = (moment: LiberalMoment) => {
+    const coinsNeeded = getRequiredCoinsForMoment(moment);
+    const userCoins = currentUser.coinsBalance ?? 0;
+
+    if (userCoins < coinsNeeded) {
+      if (onOpenCoinStore) {
+        onOpenCoinStore(
+          `Esta mídia de ${moment.authorName} custa ${coinsNeeded} Moedas (seu saldo atual é de ${userCoins} Moedas). Compre moedas para desbloquear!`
+        );
+      }
+      return;
+    }
+
+    if (onSpendCoins) {
+      const ok = onSpendCoins(coinsNeeded, `Desbloqueio de mídia +18 de ${moment.authorName}`);
+      if (!ok) return;
+    }
+
     setUnlockedSaleIds((prev) => [...prev, moment.id]);
     setRevealedMomentIds((prev) => [...prev, moment.id]);
     if (onUnlockMomentSale && moment.salePrice) {
       onUnlockMomentSale(moment.id, moment.salePrice);
     }
+  };
+
+  const handleSendGiftToMoment = (
+    moment: LiberalMoment,
+    gift: (typeof CREATOR_GIFTS)[0]
+  ) => {
+    const userCoins = currentUser.coinsBalance ?? 0;
+    if (userCoins < gift.coins) {
+      if (onOpenCoinStore) {
+        onOpenCoinStore(
+          `Para enviar "${gift.label}" (${gift.coins} Moedas) para ${moment.authorName}, adicione moedas à sua carteira!`
+        );
+      }
+      return;
+    }
+
+    if (onSpendCoins) {
+      const ok = onSpendCoins(gift.coins, `Presente ${gift.label} para ${moment.authorName}`);
+      if (!ok) return;
+    }
+
+    setMomentGiftsCount((prev) => ({
+      ...prev,
+      [moment.id]: (prev[moment.id] || 0) + gift.coins
+    }));
+    setGiftSuccessBanner((prev) => ({
+      ...prev,
+      [moment.id]: `Você enviou ${gift.label} (${gift.coins} Moedas) para ${moment.authorName}!`
+    }));
+    setOpenGiftMomentId(null);
   };
 
   const formatDestructLabel = (mins?: number) => {
@@ -285,11 +355,11 @@ export function LiberalMomentsTab({
 
                 <div className="flex items-center gap-1.5 shrink-0">
                   {isPaidSale ? (
-                    <span className="px-2.5 py-1 rounded-full bg-[#E11D48]/20 border border-[#E11D48]/50 text-[#FB7185] text-[11px] font-bold flex items-center gap-1 whitespace-nowrap">
-                      <BadgeDollarSign className="w-3.5 h-3.5 shrink-0" />
+                    <span className="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-200 text-[11px] font-bold flex items-center gap-1 whitespace-nowrap">
+                      <Coins className="w-3.5 h-3.5 text-amber-300 shrink-0" />
                       {isSaleUnlocked
                         ? 'Liberado'
-                        : `R$ ${moment.salePrice?.toFixed(2).replace('.', ',')}`}
+                        : `${getRequiredCoinsForMoment(moment)} Moedas`}
                     </span>
                   ) : (
                     <span className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-[#FAF5F6]/75 text-[11px] font-medium whitespace-nowrap">
@@ -341,25 +411,35 @@ export function LiberalMomentsTab({
                   />
                 )}
 
-                {/* Overlay 1: If it came from Creator Studio as a Paid Preview */}
+                {/* Overlay 1: If it came from Creator Studio as a Paid Preview (Requires Coins) */}
                 {isPaidSale && !isSaleUnlocked && (
-                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-black/55 backdrop-blur-md">
-                    <div className="w-14 h-14 rounded-2xl bg-[#E11D48]/20 border border-[#E11D48] flex items-center justify-center text-[#FB7185] mb-3 shadow-lg">
-                      <BadgeDollarSign className="w-7 h-7" />
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-black/60 backdrop-blur-md">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 mb-3 shadow-lg">
+                      <Coins className="w-7 h-7" />
                     </div>
                     <h4 className="text-base font-bold text-white font-display">
-                      Prévia Exclusiva de Criador (+18)
+                      Mídia Exclusiva de Vendedor (+18)
                     </h4>
-                    <p className="text-xs text-[#FAF5F6]/70 max-w-xs mt-1 mb-4">
-                      Desbloqueie esta mídia completa publicada por {moment.authorName}.
+                    <p className="text-xs text-[#FAF5F6]/75 max-w-xs mt-1 mb-2">
+                      Desbloqueie esta mídia completa de {moment.authorName} usando suas Moedas Aura.
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => handleUnlockPaidMoment(moment)}
-                      className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#E11D48] to-[#BE123C] text-white font-bold text-xs shadow-lg"
-                    >
-                      Desbloquear por R$ {moment.salePrice?.toFixed(2).replace('.', ',')}
-                    </button>
+                    <span className="text-[11px] text-amber-300 font-semibold mb-4">
+                      Seu saldo atual: {currentUser.coinsBalance ?? 0} Moedas
+                    </span>
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleUnlockPaidMoment(moment)}
+                        className="px-5 py-2.5 rounded-2xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold text-xs shadow-lg flex items-center gap-1.5"
+                      >
+                        <Coins className="w-4 h-4 text-amber-300" />
+                        <span>
+                          {(currentUser.coinsBalance ?? 0) >= getRequiredCoinsForMoment(moment)
+                            ? `Desbloquear com ${getRequiredCoinsForMoment(moment)} Moedas`
+                            : `Comprar Moedas p/ Desbloquear (${getRequiredCoinsForMoment(moment)} Moedas)`}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -422,18 +502,80 @@ export function LiberalMomentsTab({
                           openCommentsMomentId === moment.id ? null : moment.id
                         )
                       }
-                      className="px-3.5 py-2 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-[#FAF5F6]/80 flex items-center gap-1.5"
+                      className="px-3 py-2 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-[#FAF5F6]/80 flex items-center gap-1.5"
                     >
                       <MessageCircle className="w-4 h-4 text-amber-300" />
                       <span>Comentar ({extraComments.length})</span>
                     </button>
+
+                    {/* Send Gift with Coins to Seller Media */}
+                    {moment.isAuthorSeller && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenGiftMomentId(
+                            openGiftMomentId === moment.id ? null : moment.id
+                          )
+                        }
+                        className="px-3 py-2 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-xs font-bold text-amber-200 flex items-center gap-1.5 transition-all"
+                      >
+                        <Gift className="w-4 h-4 text-amber-300" />
+                        <span>
+                          Mandar Presente
+                          {momentGiftsCount[moment.id]
+                            ? ` (+${momentGiftsCount[moment.id]} 🪙)`
+                            : ''}
+                        </span>
+                      </button>
+                    )}
                   </div>
 
-                  <span className="text-[11px] text-[#FAF5F6]/45 flex items-center gap-1">
+                  <span className="text-[11px] text-[#FAF5F6]/45 hidden sm:flex items-center gap-1">
                     <Lock className="w-3 h-3 text-emerald-400" />
                     Sem dados EXIF
                   </span>
                 </div>
+
+                {giftSuccessBanner[moment.id] && (
+                  <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs font-semibold flex items-center gap-2">
+                    <Gift className="w-4 h-4 text-amber-300 shrink-0" />
+                    <span>{giftSuccessBanner[moment.id]}</span>
+                  </div>
+                )}
+
+                {/* Expandable Gift Picker Drawer for Seller Media */}
+                {openGiftMomentId === moment.id && (
+                  <div className="p-3.5 rounded-2xl bg-[#141118] border border-amber-400/35 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-amber-200 flex items-center gap-1.5">
+                        <Coins className="w-3.5 h-3.5 text-amber-300" />
+                        Enviar Presente p/ {moment.authorName} (Saldo: {currentUser.coinsBalance ?? 0} Moedas)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setOpenGiftMomentId(null)}
+                        className="text-[11px] text-white/50 hover:text-white"
+                      >
+                        Fechar
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {CREATOR_GIFTS.map((g) => (
+                        <button
+                          key={g.id}
+                          type="button"
+                          onClick={() => handleSendGiftToMoment(moment, g)}
+                          className="p-2.5 rounded-xl bg-black/45 hover:bg-amber-500/20 border border-white/10 hover:border-amber-400/50 text-left transition-all"
+                        >
+                          <p className="text-xs font-bold text-white truncate">{g.label}</p>
+                          <span className="text-[11px] font-mono text-amber-300 font-semibold">
+                            {g.coins} Moedas
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <p className="text-xs sm:text-sm text-[#FAF5F6]/90 leading-relaxed">
                   <strong className="text-white mr-1.5">{moment.authorName}:</strong>

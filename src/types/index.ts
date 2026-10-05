@@ -1,4 +1,4 @@
-export type TabType = 'connect' | 'moments' | 'venues' | 'chat' | 'profile';
+export type TabType = 'connect' | 'moments' | 'venues' | 'chat' | 'profile' | 'admin';
 
 export type VipTier = 'free' | 'vip' | 'black_vip' | 'diamond_club';
 
@@ -260,6 +260,7 @@ export interface User {
   bdsm: BdsmProfile;
   isVip: boolean;
   vipTier: VipTier;
+  coinsBalance?: number; // Saldo de Moedas Aura para desbloquear mídias e enviar presentes em lives/posts
   matchScore?: number;
   blindMatchInfo: {
     revealed: boolean;
@@ -408,3 +409,112 @@ export interface MeetupVenue {
   isBookedByMe?: boolean;
   groupId?: string;
 }
+
+export interface AiSectionDesignProposal {
+  id: string;
+  title: string;
+  tagline: string;
+  rationale: string;
+  primaryColor: string;
+  accentColor: string;
+  bgColor: string;
+  cardBgColor: string;
+  borderRadiusStyle: 'soft' | 'editorial' | 'organic' | string;
+  cardDensity: 'spacious' | 'balanced' | 'compact' | string;
+  mobileCardScale: 'large' | 'fullscreen' | 'standard' | string;
+  buttonStyle: 'gradient' | 'solid' | 'glass-outline' | string;
+  suggestedHeading: string;
+  suggestedSubheading: string;
+  cssPreviewSnippet: string;
+  highlights: string[];
+}
+
+export interface SiteAdminConfig {
+  // 1. Logo & Identidade Visual
+  brandFirstName: string;
+  brandSecondName: string;
+  brandSubtitle: string;
+  showFlameAccentOnE: boolean;
+  primaryColor: string;
+  accentColor: string;
+  bgColor: string;
+  cardBgColor: string;
+  borderRadiusStyle: 'soft' | 'editorial' | 'organic';
+  buttonStyle: 'gradient' | 'solid' | 'glass-outline';
+  naturalLookMode: boolean;
+
+  // 2. Sistema de Moedas Aura & Presentes
+  initialUserCoins: number;
+  coinPackages: {
+    id: string;
+    name: string;
+    baseCoins: number;
+    bonusCoins: number;
+    totalCoins: number;
+    priceBrl: number;
+    badge?: string;
+    popular?: boolean;
+  }[];
+  creatorGifts: {
+    id: string;
+    label: string;
+    coins: number;
+  }[];
+
+  // 3. Vendedores +18 & Níveis de Taxa de Saque
+  sellerActivationFeeBrl: number;
+  requireVerificationForSeller: boolean;
+  sellerGiveFreeVip: boolean;
+  sellerTierFees: {
+    nivel1FeePercent: number;
+    nivel2FeePercent: number;
+    nivel3FeePercent: number;
+  };
+
+  // 4. Planos VIP (Mensal vs Anual) & Cotas Gratuitas
+  vipMonthlyBrl: number;
+  vipAnnualEquivalentMonthlyBrl: number;
+  vipAnnualTotalBrl: number;
+  blackMonthlyBrl: number;
+  blackAnnualEquivalentMonthlyBrl: number;
+  blackAnnualTotalBrl: number;
+  freeDailyLikesLimit: number;
+  freeDailyFirstMessagesLimit: number;
+
+  // 5. Descobrir, Altura & Localização Dinâmica
+  mobileDiscoverCardScale: 'large' | 'fullscreen' | 'standard';
+  defaultHeightUnit: 'auto_gps' | 'cm' | 'ft';
+  showDiscretePhotoCountBadge: boolean;
+  dynamicLocationsList: string[];
+
+  // 6. Status, Lives & Momentos Liberais
+  allowLivesOnlyVipAndSellers: boolean;
+  requireAdultWarningOnStatus: boolean;
+  allowStatusCrosspostToMomentsAndSale: boolean;
+
+  // 7. Encontros Reais, Chat WhatsApp & Vídeo em Grupos
+  enableGroupVideoCalls: boolean;
+  enableCommunityVideoCalls: boolean;
+  enableWhatsappMobileChatLayout: boolean;
+  autoJoinMeetupGroupAfterPayment: boolean;
+
+  // 8. Cadastro, Pesquisa de Onboarding, 2FA & Exclusão de Conta
+  enablePostSignupSurvey: boolean;
+  requireOtpOnSignup: boolean;
+  requireOtpOnAccountDelete: boolean;
+  enable2faSecurity: boolean;
+
+  // Custom AI Section Overrides (Headings/Subheadings/Styles applied via AI Studio inside PAINEL ADM)
+  sectionOverrides: Record<
+    string,
+    {
+      heading?: string;
+      subheading?: string;
+      appliedDesignTitle?: string;
+      primaryColor?: string;
+      accentColor?: string;
+      cardBgColor?: string;
+    }
+  >;
+}
+

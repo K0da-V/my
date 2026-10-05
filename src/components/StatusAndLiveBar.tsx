@@ -23,7 +23,9 @@ import {
   ChevronRight,
   AlertTriangle,
   Mic,
-  MicOff
+  MicOff,
+  Coins,
+  Gift
 } from 'lucide-react';
 import {
   User,
@@ -44,6 +46,8 @@ interface StatusAndLiveBarProps {
   onAddMomentFromStatus?: (moment: LiberalMoment) => void;
   onAddSellerItemFromStatus?: (item: AdultContentItem) => void;
   onStartLiveStream: (live: LiveStreamSession) => void;
+  onSpendCoins?: (coins: number, description: string) => boolean;
+  onOpenCoinStore?: (reason?: string) => void;
   onOpenVip: () => void;
   onOpenSellerSetup: () => void;
 }
@@ -56,6 +60,8 @@ export function StatusAndLiveBar({
   onAddMomentFromStatus,
   onAddSellerItemFromStatus,
   onStartLiveStream,
+  onSpendCoins,
+  onOpenCoinStore,
   onOpenVip,
   onOpenSellerSetup
 }: StatusAndLiveBarProps) {
@@ -1105,8 +1111,8 @@ export function StatusAndLiveBar({
                     <strong className="text-[#FB7185]">{msg.user}: </strong>
                     <span>{msg.text}</span>
                     {msg.tip && (
-                      <span className="block font-bold text-emerald-300 mt-0.5">
-                        + R$ {msg.tip.toFixed(2)} Mimo enviado!
+                      <span className="block font-bold text-amber-300 mt-0.5">
+                        🎁 +{msg.tip} Moedas enviadas de presente!
                       </span>
                     )}
                   </div>
@@ -1114,25 +1120,57 @@ export function StatusAndLiveBar({
               </div>
 
               <div className="space-y-2 pt-2 border-t border-white/10">
-                <div className="flex items-center gap-1.5">
-                  {[10, 25, 50].map((tipVal) => (
+                <div className="flex items-center justify-between text-[11px] text-amber-200 px-0.5">
+                  <span className="flex items-center gap-1 font-semibold">
+                    <Gift className="w-3.5 h-3.5 text-amber-300" />
+                    Enviar Presente na Live:
+                  </span>
+                  <span className="font-mono text-amber-300 flex items-center gap-1">
+                    <Coins className="w-3 h-3" /> {currentUser.coinsBalance ?? 0} Moedas
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { label: '🌹 Rosa', coins: 15 },
+                    { label: '🥂 Brinde', coins: 35 },
+                    { label: '👑 Coroa', coins: 80 }
+                  ].map((giftItem) => (
                     <button
-                      key={tipVal}
+                      key={giftItem.coins}
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        const bal = currentUser.coinsBalance ?? 0;
+                        if (bal < giftItem.coins) {
+                          if (onOpenCoinStore) {
+                            onOpenCoinStore(
+                              `Você precisa de ${giftItem.coins} Moedas para enviar o presente ${giftItem.label} na Live!`
+                            );
+                          }
+                          return;
+                        }
+                        if (onSpendCoins) {
+                          const ok = onSpendCoins(
+                            giftItem.coins,
+                            `Presente ${giftItem.label} na Live de ${activeLiveSession.hostName}`
+                          );
+                          if (!ok) return;
+                        }
                         setLiveChatMessages((prev) => [
                           ...prev,
                           {
                             id: `tip_${Date.now()}`,
                             user: currentUser.name,
-                            text: 'Enviou uma gorjeta na Live!',
-                            tip: tipVal
+                            text: `Enviou um presente ${giftItem.label} na Live!`,
+                            tip: giftItem.coins
                           }
-                        ])
-                      }
-                      className="flex-1 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/30 border border-amber-400/30 text-amber-200 text-[11px] font-bold"
+                        ]);
+                      }}
+                      className="py-1.5 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/30 border border-amber-400/30 text-amber-200 text-[10px] font-bold flex flex-col items-center"
                     >
-                      + R$ {tipVal}
+                      <span>{giftItem.label}</span>
+                      <span className="text-[9px] text-amber-300 font-mono">
+                        {giftItem.coins} Moedas
+                      </span>
                     </button>
                   ))}
                 </div>

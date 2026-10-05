@@ -17,10 +17,15 @@ import {
   RotateCcw,
   ChevronLeft,
   ChevronRight,
-  Check
+  Check,
+  Coins,
+  Gift,
+  Lock
 } from 'lucide-react';
 import { User, Hobby, BdsmProfile } from '../../types';
 import { BDSM_FETISH_OPTIONS } from '../../data/mockData';
+import { POPULAR_DYNAMIC_LOCATIONS } from '../DynamicLocationPicker';
+import { CREATOR_GIFTS } from './LiberalMomentsTab';
 
 interface ConnectTabProps {
   profiles: User[];
@@ -32,6 +37,8 @@ interface ConnectTabProps {
   onStartVerify: () => void;
   onOpenVip: () => void;
   onOpenBdsmTest: () => void;
+  onSpendCoins?: (amount: number) => boolean;
+  onOpenCoinStore?: () => void;
 }
 
 export function ConnectTab({
@@ -42,7 +49,9 @@ export function ConnectTab({
   onLikeUser,
   onStartChat,
   onStartVerify,
-  onOpenBdsmTest
+  onOpenBdsmTest,
+  onSpendCoins,
+  onOpenCoinStore
 }: ConnectTabProps) {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [activePhotoIdx, setActivePhotoIdx] = useState<number>(0);
@@ -61,6 +70,9 @@ export function ConnectTab({
   const [selectedRelationship, setSelectedRelationship] = useState<string>('all');
   const [verifiedOnly, setVerifiedOnly] = useState<boolean>(false);
   const [passedIds, setPassedIds] = useState<string[]>([]);
+  const [unlockedSellerProfileIds, setUnlockedSellerProfileIds] = useState<string[]>([]);
+  const [giftBanner, setGiftBanner] = useState<string | null>(null);
+  const [showSellerGiftPicker, setShowSellerGiftPicker] = useState<boolean>(false);
 
   const toggleHobbyFilter = (hobbyName: string) => {
     setSelectedHobbies((prev) =>
@@ -284,6 +296,66 @@ export function ConnectTab({
               <span className="hidden sm:inline">Mapa BDSM</span>
             </button>
           </div>
+        </div>
+
+        {/* Quick Dynamic Location Chips */}
+        <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <span className="text-[11px] font-semibold text-[#FAF5F6]/50 shrink-0 flex items-center gap-1 mr-1">
+            <MapPin className="w-3 h-3 text-[#FB7185]" />
+            De onde:
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery('');
+              setCurrentIndex(0);
+            }}
+            className={`px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-all ${
+              searchQuery === ''
+                ? 'bg-[#E11D48] text-white'
+                : 'bg-white/[0.04] text-[#FAF5F6]/70 hover:text-white border border-white/10'
+            }`}
+          >
+            Todas as Regiões
+          </button>
+          {currentUser.city && (
+            <button
+              type="button"
+              onClick={() => {
+                const cityPart = currentUser.city.split(',')[0].trim();
+                setSearchQuery(cityPart);
+                setCurrentIndex(0);
+              }}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-all ${
+                searchQuery.toLowerCase() === currentUser.city.split(',')[0].trim().toLowerCase()
+                  ? 'bg-[#E11D48] text-white'
+                  : 'bg-amber-500/15 text-amber-200 border border-amber-400/30 hover:bg-amber-500/25'
+              }`}
+            >
+              Perto de Mim ({currentUser.city.split(',')[0]})
+            </button>
+          )}
+          {POPULAR_DYNAMIC_LOCATIONS.slice(0, 5).map((loc) => {
+            const shortCity = loc.split(' (')[0];
+            const isSelected = searchQuery.toLowerCase() === shortCity.toLowerCase();
+            return (
+              <button
+                key={loc}
+                type="button"
+                onClick={() => {
+                  setSearchQuery(isSelected ? '' : shortCity);
+                  setCurrentIndex(0);
+                }}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-medium shrink-0 transition-all ${
+                  isSelected
+                    ? 'bg-[#E11D48] text-white'
+                    : 'bg-white/[0.04] text-[#FAF5F6]/70 hover:text-white border border-white/10'
+                }`}
+              >
+                {shortCity}
+              </button>
+            );
+          })}
         </div>
 
         {/* Instant Quick-Filter Chips Row */}
@@ -578,10 +650,10 @@ export function ConnectTab({
       {/* Main Discovery Card (Tinder-Inspired Editorial Layout) */}
       {activeProfile ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left / Center Column: Interactive Photo Card (Mobile + Desktop Optimized) */}
-          <div className="lg:col-span-7 relative rounded-[32px] overflow-hidden bg-[#140E11] border border-white/10 shadow-2xl group">
+          {/* Left / Center Column: Interactive Photo Card (Enlarged & Enhanced for Mobile Visibility per Image 3) */}
+          <div className="lg:col-span-7 relative rounded-[32px] overflow-hidden bg-[#140E11] border border-white/15 shadow-2xl group">
             <div
-              className="relative aspect-[3/4] sm:aspect-[4/5] w-full overflow-hidden select-none"
+              className="relative min-h-[540px] sm:min-h-[610px] aspect-[3/4] sm:aspect-[4/5] w-full overflow-hidden select-none"
               onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
               onTouchEnd={(e) => {
                 if (touchStartX === null || profilePhotos.length <= 1) return;
@@ -607,7 +679,7 @@ export function ConnectTab({
 
               {/* Top Story-style Photo Progress Bars */}
               {profilePhotos.length > 1 && (
-                <div className="absolute top-3 left-3.5 right-3.5 z-30 flex items-center gap-1.5">
+                <div className="absolute top-3.5 left-4 right-4 z-30 flex items-center gap-2">
                   {profilePhotos.map((_, idx) => (
                     <button
                       key={idx}
@@ -616,7 +688,7 @@ export function ConnectTab({
                       className="flex-1 py-1 focus:outline-none"
                       aria-label={`Ver foto ${idx + 1}`}
                     >
-                      <div className="h-1 w-full rounded-full overflow-hidden bg-black/45 backdrop-blur-sm">
+                      <div className="h-1.5 w-full rounded-full overflow-hidden bg-black/50 backdrop-blur-sm">
                         <div
                           className={`h-full transition-all ${
                             idx === activePhotoIdx ? 'bg-white w-full' : 'bg-white/30 w-full'
@@ -630,7 +702,7 @@ export function ConnectTab({
 
               {/* Mobile & Tablet Left / Right Invisible Tap Zones (Tap Left = Prev, Tap Right = Next) */}
               {profilePhotos.length > 1 && (
-                <div className="absolute inset-x-0 top-10 bottom-44 z-20 flex md:hidden">
+                <div className="absolute inset-x-0 top-12 bottom-48 z-20 flex md:hidden">
                   <button
                     type="button"
                     aria-label="Foto anterior"
@@ -663,7 +735,7 @@ export function ConnectTab({
                         prev === 0 ? profilePhotos.length - 1 : prev - 1
                       );
                     }}
-                    className="hidden md:flex absolute left-3 top-[42%] -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-black/45 hover:bg-black/75 border border-white/15 text-white/85 hover:text-white items-center justify-center backdrop-blur-md transition-all"
+                    className="hidden md:flex absolute left-3 top-[42%] -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 border border-white/15 text-white/90 hover:text-white items-center justify-center backdrop-blur-md transition-all"
                     title="Foto anterior"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -674,7 +746,7 @@ export function ConnectTab({
                       e.stopPropagation();
                       setActivePhotoIdx((prev) => (prev + 1) % profilePhotos.length);
                     }}
-                    className="hidden md:flex absolute right-3 top-[42%] -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-black/45 hover:bg-black/75 border border-white/15 text-white/85 hover:text-white items-center justify-center backdrop-blur-md transition-all"
+                    className="hidden md:flex absolute right-3 top-[42%] -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/50 hover:bg-black/80 border border-white/15 text-white/90 hover:text-white items-center justify-center backdrop-blur-md transition-all"
                     title="Próxima foto"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -682,18 +754,18 @@ export function ConnectTab({
                 </>
               )}
 
-              {/* Compact Top Badges + Discreet Photo Counter in Corner */}
-              <div className="absolute top-7 left-3.5 right-3.5 z-20 flex items-center justify-between gap-1.5 pointer-events-none">
-                <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Larger, High-Contrast Top Badges + Corner Photo Counter */}
+              <div className="absolute top-8 left-4 right-4 z-20 flex items-center justify-between gap-2 pointer-events-none">
+                <div className="flex items-center gap-2 flex-wrap">
                   {activeProfile.matchScore && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-emerald-400/30 text-[10px] font-semibold text-emerald-300 flex items-center gap-1 whitespace-nowrap">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-emerald-400/40 text-xs font-bold text-emerald-300 flex items-center gap-1.5 whitespace-nowrap shadow-md">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
                       {activeProfile.matchScore}% Afinidade
                     </span>
                   )}
                   {(activeProfile.isSellerVerified ||
                     activeProfile.sellerProfile?.isSellerVerified) && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#E11D48]/85 backdrop-blur-md text-[10px] font-semibold text-white whitespace-nowrap">
+                    <span className="px-3 py-1 rounded-full bg-[#E11D48] text-xs font-bold text-white whitespace-nowrap shadow-md">
                       Criador(a) +18
                     </span>
                   )}
@@ -702,47 +774,47 @@ export function ConnectTab({
                 {/* Discreet Corner Photo Counter */}
                 <div className="flex items-center gap-1.5">
                   {activeProfile.bdsm?.enabled && (
-                    <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[10px] font-medium text-amber-200 whitespace-nowrap">
+                    <span className="hidden sm:inline-flex px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/15 text-xs font-medium text-amber-200 whitespace-nowrap">
                       {activeProfile.bdsm.role}
                     </span>
                   )}
-                  <span className="px-2.5 py-0.5 rounded-full bg-black/65 backdrop-blur-md border border-white/15 text-[10px] font-semibold text-white/90 whitespace-nowrap">
+                  <span className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/20 text-xs font-bold text-white whitespace-nowrap shadow-md">
                     {activePhotoIdx + 1}/{profilePhotos.length} fotos
                   </span>
                 </div>
               </div>
 
-              {/* Warm Gradient Overlay at Bottom */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0F0E11] via-[#0F0E11]/35 to-transparent pointer-events-none" />
+              {/* Deep Readable Gradient Overlay at Bottom */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0D090B] via-[#0D090B]/55 to-transparent pointer-events-none" />
 
-              {/* Bottom Overlay Identity + Floating Tinder-style Action Buttons */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20">
+              {/* Bottom Overlay Identity + Floating Tinder-style Action Buttons (Larger for Mobile) */}
+              <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7 z-20">
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-xl sm:text-3xl font-bold text-white font-display leading-tight">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h2 className="text-2xl sm:text-4xl font-extrabold text-white font-display leading-tight drop-shadow-sm">
                         {activeProfile.name}, {activeProfile.age}
                       </h2>
                       {activeProfile.isVerified && (
                         <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-[10px] font-semibold whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/25 border border-emerald-400/50 text-emerald-200 text-xs font-bold whitespace-nowrap"
                           title="Identidade e Biometria Verificadas"
                         >
-                          <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                           Verificado
                         </span>
                       )}
                       {activeProfile.vipTier !== 'free' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[10px] font-semibold whitespace-nowrap">
-                          <Crown className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/25 border border-amber-400/50 text-amber-200 text-xs font-bold whitespace-nowrap">
+                          <Crown className="w-3.5 h-3.5" />
                           VIP
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 mt-1 text-xs text-[#FAF5F6]/80 flex-wrap">
+                    <div className="flex items-center gap-2 mt-1.5 text-xs sm:text-sm text-[#FAF5F6]/90 font-medium flex-wrap">
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-[#FB7185] shrink-0" />
+                        <MapPin className="w-3.5 h-3.5 text-[#FB7185] shrink-0" />
                         {activeProfile.city} · {activeProfile.distanceKm} km
                       </span>
                       {activeProfile.personalDetails?.relationshipStyle && (
@@ -755,25 +827,25 @@ export function ConnectTab({
                   </div>
                 </div>
 
-                {/* Bio Preview */}
+                {/* Bio Preview (Larger & More Visible on Mobile) */}
                 <p
                   onClick={() => setExpandedBio((prev) => !prev)}
-                  className={`mt-3 text-xs sm:text-sm text-[#FAF5F6]/85 leading-relaxed cursor-pointer ${
-                    expandedBio ? '' : 'line-clamp-2'
+                  className={`mt-3 text-sm sm:text-base text-white/95 leading-relaxed cursor-pointer ${
+                    expandedBio ? '' : 'line-clamp-3'
                   }`}
                 >
                   {activeProfile.bio}
                 </p>
 
-                {/* Primary Floating Circular Action Bar (Tinder Inspired, Silent Likes) */}
-                <div className="mt-6 flex items-center justify-center gap-4 sm:gap-6">
+                {/* Primary Floating Circular Action Bar (Larger Touch Targets on Mobile) */}
+                <div className="mt-6 flex items-center justify-center gap-5 sm:gap-7">
                   <button
                     type="button"
                     onClick={handlePass}
-                    className="w-14 h-14 rounded-full bg-[#1C1317]/90 hover:bg-[#291C22] border border-white/15 text-[#FAF5F6]/80 hover:text-white flex items-center justify-center shadow-lg transition-transform active:scale-95"
+                    className="w-15 h-15 sm:w-16 sm:h-16 rounded-full bg-[#1C1317]/95 hover:bg-[#291C22] border border-white/20 text-[#FAF5F6] flex items-center justify-center shadow-xl transition-transform active:scale-95"
                     title="Passar perfil"
                   >
-                    <X className="w-6 h-6 text-rose-400" />
+                    <X className="w-7 h-7 text-rose-400" />
                   </button>
 
                   <button
@@ -935,14 +1007,15 @@ export function ConnectTab({
               </div>
             )}
 
-            {/* Seller Content Preview Card (if profile sells content and user hasn't blocked sales) */}
+            {/* Seller Content Preview Card (unlockable with Aura Coins + Gift sending) */}
             {(activeProfile.isSellerVerified ||
               activeProfile.sellerProfile?.isSellerVerified) &&
               !currentUser.privacySettings?.blockAdultSalesTabs && (
-                <div className="velvet-card rounded-3xl p-5 border border-[#E11D48]/30 bg-gradient-to-br from-[#231018] to-[#120B0E]">
-                  <div className="flex items-center justify-between">
+                <div className="velvet-card rounded-3xl p-5 border border-[#E11D48]/30 bg-gradient-to-br from-[#231018] to-[#120B0E] space-y-3.5">
+                  <div className="flex items-center justify-between gap-2">
                     <div>
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-[#FB7185]">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-[#FB7185] flex items-center gap-1">
+                        <Coins className="w-3.5 h-3.5 text-amber-300" />
                         Clube de Conteúdo Exclusivo +18
                       </span>
                       <h4 className="text-sm font-bold text-white mt-0.5">
@@ -950,14 +1023,116 @@ export function ConnectTab({
                       </h4>
                     </div>
                     {activeProfile.sellerProfile?.monthlySubscriptionPrice && (
-                      <span className="px-3 py-1 rounded-xl bg-[#E11D48] text-white text-xs font-bold">
-                        R$ {activeProfile.sellerProfile.monthlySubscriptionPrice.toFixed(2)}/mês
+                      <span className="px-3 py-1 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-bold flex items-center gap-1">
+                        <Coins className="w-3.5 h-3.5 text-amber-300" />
+                        {Math.max(
+                          20,
+                          Math.round(activeProfile.sellerProfile.monthlySubscriptionPrice)
+                        )}{' '}
+                        Moedas
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#FAF5F6]/70 mt-2">
-                    Este perfil possui selo de vendedor verificado e compartilha ensaios e vídeos exclusivos para assinantes ou avulsos no chat.
+                  <p className="text-xs text-[#FAF5F6]/70">
+                    Para comprar mídias avulsas ou assinar o acervo +18 deste vendedor, utilize suas{' '}
+                    <strong className="text-amber-300">Moedas Aura</strong> ou envie um presente!
                   </p>
+
+                  {giftBanner && (
+                    <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-400/40 text-xs text-emerald-200 font-semibold">
+                      {giftBanner}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {unlockedSellerProfileIds.includes(activeProfile.id) ? (
+                      <span className="px-3.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-bold flex items-center gap-1.5">
+                        <Check className="w-4 h-4" />
+                        Acervo +18 Desbloqueado com Moedas
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const coinCost = Math.max(
+                            25,
+                            Math.round(
+                              activeProfile.sellerProfile?.monthlySubscriptionPrice || 35
+                            )
+                          );
+                          const balance = currentUser.coinsBalance ?? 0;
+                          if (balance < coinCost) {
+                            if (onOpenCoinStore) onOpenCoinStore();
+                            return;
+                          }
+                          if (onSpendCoins && onSpendCoins(coinCost)) {
+                            setUnlockedSellerProfileIds((prev) => [...prev, activeProfile.id]);
+                            setGiftBanner(
+                              `Acervo de ${activeProfile.name} desbloqueado por ${coinCost} Moedas!`
+                            );
+                            setTimeout(() => setGiftBanner(null), 4000);
+                          }
+                        }}
+                        className="flex-1 py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-[#E11D48] to-[#BE123C] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg"
+                      >
+                        <Lock className="w-3.5 h-3.5" />
+                        Desbloquear Mídias (
+                        {Math.max(
+                          25,
+                          Math.round(activeProfile.sellerProfile?.monthlySubscriptionPrice || 35)
+                        )}{' '}
+                        Moedas)
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setShowSellerGiftPicker((prev) => !prev)}
+                      className="py-2.5 px-3.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/35 text-amber-200 text-xs font-bold flex items-center gap-1.5"
+                    >
+                      <Gift className="w-3.5 h-3.5 text-amber-300" />
+                      Presentear
+                    </button>
+                  </div>
+
+                  {showSellerGiftPicker && (
+                    <div className="p-3 rounded-2xl bg-[#0D090B]/95 border border-amber-400/30 space-y-2">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-amber-200">
+                          Enviar Presente para {activeProfile.name}
+                        </span>
+                        <span className="text-[#FAF5F6]/60">
+                          Saldo: <strong className="text-amber-300">{currentUser.coinsBalance ?? 0} Moedas</strong>
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {CREATOR_GIFTS.slice(0, 3).map((g) => (
+                          <button
+                            key={g.id}
+                            type="button"
+                            onClick={() => {
+                              const balance = currentUser.coinsBalance ?? 0;
+                              if (balance < g.coins) {
+                                if (onOpenCoinStore) onOpenCoinStore();
+                                return;
+                              }
+                              if (onSpendCoins && onSpendCoins(g.coins)) {
+                                setGiftBanner(
+                                  `Você enviou ${g.label} (${g.coins} Moedas) para ${activeProfile.name}!`
+                                );
+                                setShowSellerGiftPicker(false);
+                                setTimeout(() => setGiftBanner(null), 4000);
+                              }
+                            }}
+                            className="p-2 rounded-xl bg-white/[0.04] hover:bg-amber-500/20 border border-white/10 text-center transition-all"
+                          >
+                            <div className="text-[11px] font-bold text-white truncate">{g.label}</div>
+                            <div className="text-[10px] text-amber-300 font-bold">{g.coins} Moedas</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
           </div>

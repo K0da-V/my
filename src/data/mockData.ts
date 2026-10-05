@@ -266,6 +266,7 @@ export const INITIAL_CURRENT_USER: User = {
     maxDailyFirstMessages: 4,
     resetTimeLabel: '23h 59m',
   },
+  coinsBalance: 140,
   hobbies: [
     'Jazz & Bossa Nova',
     'Vinhos Naturais & Drinks Autorais',

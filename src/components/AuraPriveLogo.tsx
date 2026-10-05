@@ -1,67 +1,93 @@
 interface AuraPriveLogoProps {
   size?: 'sm' | 'md' | 'lg';
   showSubtitle?: boolean;
+  firstName?: string;
+  secondName?: string;
+  subtitleText?: string;
+  showFlameOnE?: boolean;
 }
 
-export function AuraPriveLogo({ size = 'md', showSubtitle = false }: AuraPriveLogoProps) {
-  const iconBox =
-    size === 'sm'
-      ? 'w-8 h-8 rounded-xl'
-      : size === 'lg'
-      ? 'w-11 h-11 rounded-2xl'
-      : 'w-9 h-9 rounded-xl';
-
-  const svgSize = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
-
+export function AuraPriveLogo({
+  size = 'md',
+  showSubtitle = false,
+  firstName = 'Aura',
+  secondName = 'Privé',
+  subtitleText = 'Encontros & Lifestyle +18',
+  showFlameOnE = true
+}: AuraPriveLogoProps) {
   const textSize =
-    size === 'sm' ? 'text-base' : size === 'lg' ? 'text-2xl' : 'text-lg';
+    size === 'sm'
+      ? 'text-xl sm:text-2xl'
+      : size === 'lg'
+      ? 'text-3xl sm:text-4xl'
+      : 'text-2xl sm:text-3xl';
+
+  const flameSize =
+    size === 'sm'
+      ? 'w-3 h-3.5 -top-2'
+      : size === 'lg'
+      ? 'w-4 h-5 -top-3'
+      : 'w-3.5 h-4 -top-2.5';
+
+  // Render the flame accent on the final 'e'/'é' of the second word
+  const cleanSecond = secondName.trim() || 'Privé';
+  const endsWithE =
+    cleanSecond.toLowerCase().endsWith('é') || cleanSecond.toLowerCase().endsWith('e');
+  const prefixSecond = endsWithE ? cleanSecond.slice(0, -1) : cleanSecond;
 
   return (
-    <div className="inline-flex items-center gap-2.5 select-none">
-      {/* Clean, minimalist human-designed brand mark: intertwined flame & heart curve */}
+    <div className="inline-flex flex-col select-none">
       <div
-        className={`${iconBox} bg-gradient-to-br from-[#E11D48] to-[#9F1239] flex items-center justify-center shadow-sm border border-white/15 shrink-0`}
+        className={`${textSize} font-bold tracking-tight leading-none flex items-baseline font-serif`}
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          className={`${svgSize} text-white`}
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-            fill="currentColor"
-            fillOpacity="0.22"
-          />
-          <path
-            d="M12 2.75C12 2.75 7.5 7.1 7.5 11.25C7.5 13.85 9.51 15.95 12 15.95C14.49 15.95 16.5 13.85 16.5 11.25C16.5 9.4 15.45 7.6 14.2 6.1C14.05 7.55 13.1 8.6 12.1 8.85C13.15 6.85 12.85 4.4 12 2.75Z"
-            fill="currentColor"
-          />
-          <path
-            d="M12 20.5C6.4 15.6 3.25 12.6 3.25 8.65C3.25 6.05 5.25 4 7.8 4C9.4 4 10.95 4.8 12 6.1C13.05 4.8 14.6 4 16.2 4C18.75 4 20.75 6.05 20.75 8.65C20.75 12.6 17.6 15.6 12 20.5Z"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <span className="text-white font-bold">{firstName}</span>
+        <span className="ml-1.5 text-[#FB7185] italic font-semibold inline-flex items-baseline">
+          <span>{prefixSecond}</span>
+          {endsWithE && (
+            <span className="relative inline-block not-italic font-serif">
+              <span>{showFlameOnE ? 'e' : 'é'}</span>
+              {showFlameOnE && (
+                /* Foguinho no lugar do acento agudo da letra é */
+                <svg
+                  viewBox="0 0 24 28"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                  className={`absolute left-1/2 -translate-x-1/3 ${flameSize} rotate-[14deg] drop-shadow-[0_0_6px_rgba(244,63,94,0.75)] pointer-events-none`}
+                >
+                  <path
+                    d="M13.5 1.5C13.8 5.2 10.2 7.8 9.2 11.2C8.4 13.8 9.8 16.2 9.8 16.2C9.8 16.2 7.4 15.1 6.9 12.4C4.2 15.3 4.5 20.1 7.6 23.1C10.5 25.9 15.4 25.8 18.1 22.6C20.9 19.3 20.6 13.9 17.8 9.8C16.2 7.4 13.3 4.8 13.5 1.5Z"
+                    fill="url(#auraFlameGrad)"
+                  />
+                  <path
+                    d="M12.6 12.2C12.8 14.3 11.1 15.8 10.8 17.6C10.5 19.6 11.8 21.5 13.6 21.5C15.5 21.5 16.8 19.4 16.2 17.1C15.7 15.1 13.5 13.8 12.6 12.2Z"
+                    fill="#FDE68A"
+                  />
+                  <defs>
+                    <linearGradient
+                      id="auraFlameGrad"
+                      x1="12"
+                      y1="1.5"
+                      x2="12"
+                      y2="25.5"
+                      gradientUnits="userSpaceOnUse"
+                    >
+                      <stop stopColor="#FBBF24" />
+                      <stop offset="0.5" stopColor="#F43F5E" />
+                      <stop offset="1" stopColor="#E11D48" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              )}
+            </span>
+          )}
+        </span>
       </div>
-
-      <div className="flex flex-col leading-none">
-        <div className="flex items-baseline gap-1">
-          <span className={`${textSize} font-bold tracking-tight text-white`}>
-            aura
-          </span>
-          <span className={`${textSize} font-light tracking-tight text-[#FB7185]`}>
-            privé
-          </span>
-        </div>
-        {showSubtitle && (
-          <span className="text-[10px] text-white/45 font-medium tracking-wide mt-0.5">
-            encontros & conexões +18
-          </span>
-        )}
-      </div>
+      {showSubtitle && (
+        <span className="text-[10px] text-white/45 tracking-widest uppercase font-medium mt-1 font-sans">
+          {subtitleText}
+        </span>
+      )}
     </div>
   );
 }

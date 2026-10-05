@@ -67,6 +67,7 @@ import {
   CURATED_PROFILE_QUESTIONS
 } from '../../data/mockData';
 import { MediaUploadPicker, EditedMediaResult } from '../MediaUploadPicker';
+import { DynamicLocationPicker } from '../DynamicLocationPicker';
 
 export const SELLER_LEVEL_TIERS: {
   level: SellerLevel;
@@ -1241,7 +1242,7 @@ export function ProfileTab({
           <div className="velvet-card rounded-3xl p-5 sm:p-6 space-y-4">
             <h2 className="text-base font-bold text-white">Informações Básicas & Bio</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-[#FAF5F6]/70 block mb-1.5">
                   Nome ou Apelido do Perfil
@@ -1265,17 +1266,18 @@ export function ProfileTab({
                   className="w-full px-4 py-2.5 rounded-2xl bg-[#0D090B] border border-white/10 text-sm text-white focus:outline-none focus:border-[#E11D48]"
                 />
               </div>
-
-              <div>
-                <label className="text-xs text-[#FAF5F6]/70 block mb-1.5">Cidade / Bairro</label>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-[#0D090B] border border-white/10 text-sm text-white focus:outline-none focus:border-[#E11D48]"
-                />
-              </div>
             </div>
+
+            {/* Dynamic Location Picker (De onde você é de forma dinâmica) */}
+            <DynamicLocationPicker
+              value={city}
+              onChange={(newCity, isImp) => {
+                setCity(newCity);
+                if (typeof isImp === 'boolean') {
+                  setHeightUnit(isImp ? 'ft' : 'cm');
+                }
+              }}
+            />
 
             <div>
               <label className="text-xs text-[#FAF5F6]/70 block mb-1.5">
@@ -1303,62 +1305,28 @@ export function ProfileTab({
               </p>
             </div>
 
-            {/* Altura (Image 3 Wheel Picker Style with cm / pés prioritized by Location Permission) */}
-            <div className="space-y-2.5">
+            {/* Altura (Compact & Efficient Slider + Smaller Unit Toggle per Image 2) */}
+            <div className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <label className="text-xs font-semibold text-[#FAF5F6] flex items-center gap-1.5">
                   <Ruler className="w-3.5 h-3.5 text-[#FB7185]" />
-                  <span>Altura Selecionada:</span>
-                  <strong className="text-white font-bold">{formatHeight(heightCm)}</strong>
+                  <span>Sua Altura:</span>
+                  <strong className="text-sm text-white font-bold">{formatHeight(heightCm)}</strong>
                 </label>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleDetectLocationUnit}
-                    className="px-2.5 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-[10px] text-[#FAF5F6]/70 flex items-center gap-1"
-                    title="Usar permissão de localização para definir unidade padrão (cm ou pés)"
-                  >
-                    <MapPin className="w-3 h-3 text-[#FB7185]" />
-                    <span>{locationUnitLabel}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowHeightModal(true)}
-                    className="px-3 py-1 rounded-lg bg-[#E11D48]/15 border border-[#E11D48]/40 text-[#FB7185] text-[11px] font-bold hover:bg-[#E11D48] hover:text-white transition-colors"
-                  >
-                    Abrir Seletor em Tela Cheia
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleDetectLocationUnit}
+                  className="px-2 py-0.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-[10px] text-[#FAF5F6]/60 flex items-center gap-1"
+                  title="Priorizar unidade pela localização"
+                >
+                  <MapPin className="w-2.5 h-2.5 text-[#FB7185]" />
+                  <span>{locationUnitLabel}</span>
+                </button>
               </div>
 
-              {/* Image 3 Dark Wheel Card Selector */}
-              <div className="max-w-md mx-auto sm:mx-0 rounded-2xl bg-[#141318] border border-white/10 p-4 space-y-4 shadow-inner">
-                {/* 5-Row Interactive Vertical Wheel (Exactly like Image 3) */}
-                <div className="relative py-1 select-none flex flex-col items-center justify-center">
-                  {[-2, -1, 0, 1, 2].map((offset) => {
-                    const candidateCm = Math.min(220, Math.max(140, heightCm + offset));
-                    const isCenter = offset === 0;
-                    const isAdjacent = Math.abs(offset) === 1;
-                    return (
-                      <button
-                        key={offset}
-                        type="button"
-                        onClick={() => setHeightCm(candidateCm)}
-                        className={`w-full py-2 text-center transition-all ${
-                          isCenter
-                            ? 'border-y border-white/15 bg-white/[0.04] text-lg sm:text-xl font-bold text-white tracking-wide my-0.5'
-                            : isAdjacent
-                            ? 'text-sm text-white/45 hover:text-white/75'
-                            : 'text-xs text-white/20 hover:text-white/50'
-                        }`}
-                      >
-                        {formatHeight(candidateCm)}
-                      </button>
-                    );
-                  })}
-                </div>
-
+              {/* Compact Box containing ONLY the circled controls from Image 2 */}
+              <div className="max-w-md rounded-2xl bg-[#141318] border border-white/10 p-3.5 space-y-3 shadow-inner">
                 {/* Fine Slider + Stepper Controls */}
                 <div className="flex items-center gap-3 px-1">
                   <button
@@ -1385,13 +1353,13 @@ export function ProfileTab({
                   </button>
                 </div>
 
-                {/* Bottom Unit Toggle [ cm | pés ] + Helper Note (Image 3) */}
-                <div className="pt-2 border-t border-white/[0.07] flex flex-col items-center gap-2.5">
-                  <div className="inline-grid grid-cols-2 p-1 rounded-full bg-black/60 border border-white/15 w-44">
+                {/* Smaller, Compact Unit Toggle [ cm | pés ] + Helper Note */}
+                <div className="pt-2 border-t border-white/[0.07] flex flex-col items-center gap-1.5">
+                  <div className="inline-grid grid-cols-2 p-0.5 rounded-full bg-black/60 border border-white/15 w-28">
                     <button
                       type="button"
                       onClick={() => setHeightUnit('cm')}
-                      className={`py-1 rounded-full text-xs font-bold transition-all ${
+                      className={`py-0.5 rounded-full text-[10px] font-bold transition-all ${
                         heightUnit === 'cm'
                           ? 'bg-white text-[#0F0E11] shadow'
                           : 'text-[#FAF5F6]/65 hover:text-white'
@@ -1402,7 +1370,7 @@ export function ProfileTab({
                     <button
                       type="button"
                       onClick={() => setHeightUnit('ft')}
-                      className={`py-1 rounded-full text-xs font-bold transition-all ${
+                      className={`py-0.5 rounded-full text-[10px] font-bold transition-all ${
                         heightUnit === 'ft'
                           ? 'bg-white text-[#0F0E11] shadow'
                           : 'text-[#FAF5F6]/65 hover:text-white'
@@ -1411,7 +1379,7 @@ export function ProfileTab({
                       pés
                     </button>
                   </div>
-                  <p className="text-[11px] text-[#FAF5F6]/50 text-center">
+                  <p className="text-[10px] text-[#FAF5F6]/45 text-center">
                     As informações que você adicionar aqui também serão exibidas para outras pessoas
                   </p>
                 </div>
